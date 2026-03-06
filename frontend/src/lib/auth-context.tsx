@@ -5,7 +5,8 @@ import { mockUser } from './mock-data';
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (role: UserRole) => void;
+  // Updated to accept credentials and return a promise of the role
+  login: (matricNumber: string, password: string) => Promise<UserRole>;
   logout: () => void;
   switchRole: (role: UserRole) => void;
 }
@@ -15,8 +16,16 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (role: UserRole) => {
-    setUser({ ...mockUser, role });
+  const login = async (matricNumber: string, password: string): Promise<UserRole> => {
+    // For now, simulating an API call. 
+    // In production, you'll fetch the user and role from MongoDB via Express.
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const role: UserRole = 'requester'; // Defaulting to requester for demo
+        setUser({ ...mockUser, role });
+        resolve(role);
+      }, 1000);
+    });
   };
 
   const logout = () => {

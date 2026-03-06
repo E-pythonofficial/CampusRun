@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/lib/auth-context";
+import { AuthProvider, useAuth } from "@/lib/auth-context";
+
+// Existing Pages
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -12,7 +14,22 @@ import DispatcherDashboard from "./pages/DispatcherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
+// New Password Reset Flow Pages
+import ForgotPassword from "./pages/ForgotPassword";
+import VerifyOTP from "./pages/VerifyOTP";
+import ResetPassword from "./pages/ResetPassword";
+
 const queryClient = new QueryClient();
+
+// Protected Route Wrapper for Security
+const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, allowedRole: string }) => {
+  const { user, isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) return <Navigate replace to="/login" />;
+  if (user?.role !== allowedRole) return <Navigate replace to="/" />;
+  
+  return <>{children}</>;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,12 +39,43 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/requester" element={<RequesterDashboard />} />
-            <Route path="/dispatcher" element={<DispatcherDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            
+            {/* Password Reset Flow */}
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Protected Dashboard Routes */}
+            <Route 
+              path="/requester/*" 
+              element={
+                <ProtectedRoute allowedRole="requester">
+                  <RequesterDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/dispatcher/*" 
+              element={
+                <ProtectedRoute allowedRole="dispatcher">
+                  <DispatcherDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/*" 
+              element={
+                <ProtectedRoute allowedRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Catch All */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
