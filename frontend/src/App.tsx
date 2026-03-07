@@ -13,11 +13,14 @@ import RequesterDashboard from "./pages/RequesterDashboard";
 import DispatcherDashboard from "./pages/DispatcherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
+import MyRequests from "./pages/MyRequests";
+import PaymentSuccess from "./pages/PaymentSuccess";
 
 // New Password Reset Flow Pages
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOTP from "./pages/VerifyOTP";
 import ResetPassword from "./pages/ResetPassword";
+
 
 const queryClient = new QueryClient();
 
@@ -58,6 +61,10 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            {/* my-requests */}
+            <Route path="/my-requests" element={<MyRequests />} />
+            {/* payment success */}
+            <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route 
               path="/dispatcher/*" 
               element={

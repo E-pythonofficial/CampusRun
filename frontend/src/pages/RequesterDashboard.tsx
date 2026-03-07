@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
 import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
@@ -6,140 +7,262 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, Package, History, X, LogOut, 
-  MapPin, Navigation, ShieldCheck, Clock 
+  Plus, History, X, LogOut, 
+  MapPin, Navigation, Clock, CreditCard, ChevronRight
 } from 'lucide-react';
 
 // Map components
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
+// Fix for default marker icons in Leaflet
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+let DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
+});
+L.Marker.prototype.options.icon = DefaultIcon;
+
 const RequesterDashboard = () => {
-  // 1. DYNAMIC NAME FIX: Accessing the registered user (Omobolaji)
-  const { user, logout } = useAuth();
-  const [showCreate, setShowCreate] = useState(false);
+  const { user, logout } = useAuth(); // Access 'user' to scope the data
+  const navigate = useNavigate();
+  
   const [mounted, setMounted] = useState(false);
+  const [showOrderPanel, setShowOrderPanel] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [activeRun, setActiveRun] = useState<any>(null);
 
-  // Ensure map only renders on client-side to prevent "render2" errors
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const [orderData, setOrderData] = useState({
+    item: '',
+    pickup: '',
+    dropoff: '',
+    value: ''
+  });
 
-  // Bowen University Coordinates
+  // 1. Lifecycle: Check for active runs SPECIFIC to this user ID
+  useEffect(() => { 
+    setMounted(true); 
+    if (user?.id) {
+      const storageKey = `activeRun_${user.id}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setActiveRun(JSON.parse(saved));
+      } else {
+        setActiveRun(null); // Ensure state is empty for new users
+      }
+    }
+  }, [user?.id]); // Re-run if the logged-in user changes
+
   const bowenLocation: [number, number] = [7.636, 4.181];
 
-  const activeDeliveries = [
-    {
-      id: '1',
-      item: "Course textbook - MTH201",
-      status: "IN_TRANSIT", // Operational Flow Step 5 [cite: 27]
-      from: "Science Building",
-      to: "Hall 3, Room 214",
-      fee: "500",
-      pin: "4829" // Security Handshake PIN 
-    }
+  const mockDispatchers = [
+    { id: 1, pos: [7.637, 4.182], name: "John (3 mins away)" },
+    { id: 2, pos: [7.635, 4.180], name: "Sarah (5 mins away)" },
   ];
 
+  // 2. Handle Payment Click: Save with user-scoped key
+  const handlePayment = () => {
+    if (!user?.id) return;
+    
+    const newRun = {
+      ...orderData,
+      id: `RUN-${Math.floor(Math.random() * 9000) + 1000}`,
+      status: 'IN_TRANSIT',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      dispatcher: "Adebayo O.", // Mock assigned dispatcher
+      pin: Math.floor(Math.random() * 9000) + 1000
+    };
+
+    // Save using unique key for this user
+    localStorage.setItem(`activeRun_${user.id}`, JSON.stringify(newRun));
+    navigate('/payment-success');
+  };
+
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
-      {/* Required style to fix Leaflet height issues */}
+    <div className="h-screen w-full bg-[#020617] overflow-hidden flex flex-col relative">
       <style>{`
-        .leaflet-container { height: 100%; width: 100%; z-index: 1; rounded-2xl; }
-        .glass-card { backdrop-filter: blur(16px); background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .leaflet-container { height: 100%; width: 100%; z-index: 1; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* Navigation: Removed role switcher and fixed the name */}
-      <nav className="border-b border-white/5 px-6 py-4 flex justify-between items-center glass-card sticky top-0 z-[100]">
-        <Logo size="sm" />
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-[10px] text-white/30 uppercase tracking-widest">Student Requester</p>
-            <p className="text-sm font-bold text-primary">{user?.fullName || "Omobolaji"}</p>
-          </div>
-          <Button variant="ghost" onClick={logout} className="text-white/20 hover:text-red-500 rounded-full">
+      {/* --- NAVBAR --- */}
+      <nav className="absolute top-0 left-0 right-0 z-[100] p-4 flex justify-between items-center pointer-events-none">
+        <div className="pointer-events-auto bg-black/40 backdrop-blur-md p-2 rounded-2xl border border-white/10">
+          <Logo size="sm" />
+        </div>
+        
+        <div className="flex gap-2 pointer-events-auto">
+          <Button 
+            onClick={() => navigate('/my-requests')}
+            className="bg-black/40 backdrop-blur-md border border-white/10 text-white rounded-2xl hover:bg-primary hover:text-white"
+          >
+            <History size={18} className="mr-2" />
+            <span className="hidden md:inline">My Requests</span>
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            onClick={logout}
+            className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-500 rounded-full h-10 w-10 p-0"
+          >
             <LogOut size={18} />
           </Button>
         </div>
       </nav>
 
-      <main className="max-w-6xl mx-auto p-6 space-y-10">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-black tracking-tighter italic">MY RUNS</h1>
-            <p className="text-white/40 text-sm">Secure campus-wide logistics[cite: 5, 10].</p>
+      {/* --- FULL SCREEN MAP --- */}
+      <div className="flex-1 z-0">
+        {mounted && (
+          <MapContainer center={bowenLocation} zoom={16} zoomControl={false} attributionControl={false}>
+            <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+            {mockDispatchers.map(d => (
+              <Marker key={d.id} position={d.pos as [number, number]}>
+                <Popup>{d.name}</Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        )}
+      </div>
+
+      {/* --- PERSISTENT ACTIVITY CARD (Scoped to user) --- */}
+      {activeRun && !showOrderPanel && (
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          onClick={() => navigate('/payment-success')}
+          className="fixed bottom-32 left-6 right-6 z-[50] max-w-md mx-auto bg-[#0F172A]/90 backdrop-blur-xl border border-primary/30 p-4 rounded-[2rem] flex items-center justify-between cursor-pointer shadow-2xl shadow-primary/10"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
+              <Clock size={20} className="text-primary animate-pulse" />
+            </div>
+            <div>
+              <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">Live Delivery</h4>
+              <p className="text-sm font-bold text-white line-clamp-1">{activeRun.item}</p>
+            </div>
           </div>
-          <Button 
-            onClick={() => setShowCreate(true)}
-            className="bg-primary hover:bg-orange-600 text-white rounded-2xl px-8 h-14 gap-2 shadow-xl shadow-primary/20 font-bold"
+          <div className="bg-primary/10 px-4 py-2 rounded-xl flex items-center gap-2">
+            <span className="text-[10px] font-black text-primary">TRACK</span>
+            <ChevronRight size={14} className="text-primary" />
+          </div>
+        </motion.div>
+      )}
+
+      {/* --- ACTION BUTTONS --- */}
+      <AnimatePresence>
+        {!showOrderPanel ? (
+          <motion.div 
+            initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
+            className="absolute bottom-8 left-0 right-0 z-[40] px-6 flex justify-center"
           >
-            <Plus size={20} /> New Request
-          </Button>
-        </header>
-
-        {/* ACTIVE RUNS SECTION */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2 text-white/30 px-2">
-            <Clock size={16} />
-            <h2 className="text-xs font-black uppercase tracking-widest">Active Deliveries</h2>
-          </div>
-
-          {activeDeliveries.map((run) => (
-            <motion.div 
-              key={run.id}
-              className="glass-card rounded-[2.5rem] overflow-hidden flex flex-col lg:flex-row min-h-[350px] shadow-2xl"
+            <Button 
+              onClick={() => setShowOrderPanel(true)}
+              disabled={!!activeRun} 
+              className={`w-full max-w-md h-16 rounded-3xl text-xl font-black italic shadow-2xl gap-3 transition-all ${
+                activeRun ? 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed' : 'bg-primary hover:bg-orange-600 text-white shadow-primary/40'
+              }`}
             >
-              {/* LIVE MINI MAP: Integration with Safety Check */}
-              <div className="w-full lg:w-1/3 h-[250px] lg:h-auto relative border-r border-white/5 bg-black/20">
-                {mounted ? (
-                  <MapContainer center={bowenLocation} zoom={16} zoomControl={false}>
-                    <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                    <Marker position={bowenLocation} />
-                  </MapContainer>
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-white/10">Loading Map...</div>
-                )}
-                <div className="absolute top-6 left-6 z-[10] bg-primary/90 backdrop-blur-md px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest">
-                  Live: In Transit [cite: 27]
-                </div>
+              {activeRun ? "DELIVERY IN PROGRESS" : <><Plus size={24} strokeWidth={3} /> START A RUN</>}
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div 
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="absolute bottom-0 left-0 right-0 z-[110] bg-[#0B0F1A] border-t border-white/10 rounded-t-[3rem] p-8 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] max-h-[90vh] overflow-y-auto hide-scrollbar"
+          >
+            <div className="max-w-xl mx-auto">
+              <div className="flex justify-between items-center mb-8">
+                <h2 className="text-2xl font-black italic tracking-tighter text-white">NEW REQUEST</h2>
+                <Button variant="ghost" onClick={() => setShowOrderPanel(false)} className="rounded-full text-white/40"><X /></Button>
               </div>
 
-              {/* DETAILS AREA */}
-              <div className="flex-1 p-8 md:p-12 flex flex-col justify-between">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-3xl font-black text-white">{run.item}</h3>
-                    <div className="flex items-center gap-4 mt-3 text-white/40 text-sm">
-                      <span className="flex items-center gap-1"><MapPin size={14} className="text-primary"/> {run.from}</span>
-                      <span className="text-primary/40">→</span>
-                      <span className="flex items-center gap-1"><Navigation size={14} className="text-primary"/> {run.to}</span>
+              <div className="space-y-6 pb-12">
+                <div className="space-y-2">
+                  <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">What are we moving?</Label>
+                  <Input 
+                    placeholder="e.g. MTH201 Textbook" 
+                    className="bg-white/5 border-white/10 h-14 rounded-2xl focus:ring-primary text-white"
+                    onChange={(e) => setOrderData({...orderData, item: e.target.value})}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Pickup Location</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-4 text-primary" size={18} />
+                      <Input placeholder="Search Location..." className="bg-white/5 border-white/10 h-14 pl-12 rounded-2xl text-white" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-3xl font-black text-white">₦{run.fee}</p>
-                    <p className="text-[10px] text-primary font-bold uppercase tracking-widest">Escrow Active [cite: 11, 22]</p>
+                  <div className="space-y-2">
+                    <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Dropoff Location</Label>
+                    <div className="relative">
+                      <Navigation className="absolute left-4 top-4 text-green-500" size={18} />
+                      <Input placeholder="Where to?" className="bg-white/5 border-white/10 h-14 pl-12 rounded-2xl text-white" />
+                    </div>
                   </div>
                 </div>
 
-                {/* SECURITY PIN FOOTER */}
-                <div className="mt-8 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                      <ShieldCheck size={24} />
-                    </div>
+                {/* --- ITEM VALUE DROPDOWN --- */}
+                <div className="space-y-2 relative">
+                  <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Item Value (Max ₦20k)</Label>
+                  <div 
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="w-full bg-white/5 border border-white/10 h-14 rounded-2xl px-4 flex items-center justify-between cursor-pointer hover:border-primary/50"
+                  >
+                    <span className="text-white">{orderData.value || "Select Value Range"}</span>
+                    <motion.div animate={{ rotate: dropdownOpen ? 180 : 0 }}><Plus size={16} className="text-white/40" /></motion.div>
+                  </div>
+
+                  <AnimatePresence>
+                    {dropdownOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                        className="absolute z-[120] w-full mt-2 bg-[#161B26] border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+                      >
+                        {['₦0 - ₦2k', '₦2k - ₦5k', '₦5k - ₦8k', '₦8k - ₦12k', '₦12k - ₦15k', '₦15k - ₦20k'].map((range) => (
+                          <div key={range} onClick={() => { setOrderData({...orderData, value: range}); setDropdownOpen(false); }}
+                            className="px-4 py-3 text-sm text-white/80 hover:bg-primary hover:text-white cursor-pointer transition-colors border-b border-white/5 last:border-0"
+                          >
+                            {range}
+                          </div>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="pt-4 border-t border-white/5">
+                  <div className="flex justify-between items-center mb-6">
                     <div>
-                      <p className="text-[10px] text-white/30 uppercase font-black">Security PIN [cite: 22]</p>
-                      <p className="text-sm text-white/60">Provide this to dispatcher upon arrival [cite: 27]</p>
+                      <p className="text-white/40 text-xs font-bold uppercase">Estimated Delivery Fee</p>
+                      <p className="text-3xl font-black text-white">₦500</p>
+                    </div>
+                    <div className="text-right">
+                       <p className="text-white/40 text-xs font-bold uppercase">Estimated Time</p>
+                       <p className="text-lg font-bold text-primary">8-12 Mins</p>
                     </div>
                   </div>
-                  <div className="bg-white/5 px-8 py-3 rounded-2xl border border-white/10">
-                    <span className="text-4xl font-mono font-black tracking-[0.2em] text-primary">{run.pin}</span>
-                  </div>
+
+                  <Button 
+                    onClick={handlePayment}
+                    className="w-full h-16 bg-primary hover:bg-orange-600 text-white rounded-2xl text-lg font-bold gap-3 shadow-xl shadow-primary/20"
+                  >
+                    <CreditCard size={20} /> PAY NOW
+                  </Button>
                 </div>
               </div>
-            </motion.div>
-          ))}
-        </section>
-      </main>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
