@@ -155,7 +155,7 @@ const RequesterDashboard = () => {
         {!showOrderPanel ? (
           <motion.div 
             initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
-            className="absolute bottom-8 left-0 right-0 z-[40] px-6 flex justify-center"
+            className="absolute bottom-24 left-0 right-0 z-[40] px-6 flex justify-center"
           >
             <Button 
               onClick={() => setShowOrderPanel(true)}
