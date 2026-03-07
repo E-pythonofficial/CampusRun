@@ -28,7 +28,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const RequesterDashboard = () => {
-  const { user, logout } = useAuth(); // Access 'user' to scope the data
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   
   const [mounted, setMounted] = useState(false);
@@ -43,7 +43,6 @@ const RequesterDashboard = () => {
     value: ''
   });
 
-  // 1. Lifecycle: Check for active runs SPECIFIC to this user ID
   useEffect(() => { 
     setMounted(true); 
     if (user?.id) {
@@ -52,10 +51,10 @@ const RequesterDashboard = () => {
       if (saved) {
         setActiveRun(JSON.parse(saved));
       } else {
-        setActiveRun(null); // Ensure state is empty for new users
+        setActiveRun(null);
       }
     }
-  }, [user?.id]); // Re-run if the logged-in user changes
+  }, [user?.id]);
 
   const bowenLocation: [number, number] = [7.636, 4.181];
 
@@ -64,7 +63,6 @@ const RequesterDashboard = () => {
     { id: 2, pos: [7.635, 4.180], name: "Sarah (5 mins away)" },
   ];
 
-  // 2. Handle Payment Click: Save with user-scoped key
   const handlePayment = () => {
     if (!user?.id) return;
     
@@ -73,11 +71,10 @@ const RequesterDashboard = () => {
       id: `RUN-${Math.floor(Math.random() * 9000) + 1000}`,
       status: 'IN_TRANSIT',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      dispatcher: "Adebayo O.", // Mock assigned dispatcher
+      dispatcher: "Adebayo O.",
       pin: Math.floor(Math.random() * 9000) + 1000
     };
 
-    // Save using unique key for this user
     localStorage.setItem(`activeRun_${user.id}`, JSON.stringify(newRun));
     navigate('/payment-success');
   };
@@ -89,25 +86,29 @@ const RequesterDashboard = () => {
         .hide-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
 
-      {/* --- NAVBAR --- */}
-      <nav className="absolute top-0 left-0 right-0 z-[100] p-4 flex justify-between items-center pointer-events-none">
-        <div className="pointer-events-auto bg-black/40 backdrop-blur-md p-2 rounded-2xl border border-white/10">
+      {/* --- UPDATED NAVBAR: Fixed for Mobile --- */}
+      <nav className="fixed top-0 left-0 right-0 z-[100] px-4 py-3 flex justify-between items-center bg-[#020617]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="flex items-center gap-2 shrink-0">
           <Logo size="sm" />
+          <span className="font-major italic text-base md:text-lg tracking-tighter uppercase text-white">
+            CampusRun
+          </span>
         </div>
         
-        <div className="flex gap-2 pointer-events-auto">
+        <div className="flex items-center gap-2">
           <Button 
+            variant="ghost"
             onClick={() => navigate('/my-requests')}
-            className="bg-black/40 backdrop-blur-md border border-white/10 text-white rounded-2xl hover:bg-primary hover:text-white"
+            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-2xl h-10 px-3 flex items-center gap-2"
           >
-            <History size={18} className="mr-2" />
-            <span className="hidden md:inline">My Requests</span>
+            <History size={18} className="text-primary" />
+            <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">My Requests</span>
           </Button>
           
           <Button 
             variant="ghost" 
             onClick={logout}
-            className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-500 rounded-full h-10 w-10 p-0"
+            className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 rounded-full h-10 w-10 p-0 flex items-center justify-center"
           >
             <LogOut size={18} />
           </Button>
@@ -115,7 +116,7 @@ const RequesterDashboard = () => {
       </nav>
 
       {/* --- FULL SCREEN MAP --- */}
-      <div className="flex-1 z-0">
+      <div className="flex-1 z-0 mt-[64px]"> {/* Added margin to prevent map from being under nav */}
         {mounted && (
           <MapContainer center={bowenLocation} zoom={16} zoomControl={false} attributionControl={false}>
             <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
@@ -128,26 +129,26 @@ const RequesterDashboard = () => {
         )}
       </div>
 
-      {/* --- PERSISTENT ACTIVITY CARD (Scoped to user) --- */}
+      {/* --- PERSISTENT ACTIVITY CARD --- */}
       {activeRun && !showOrderPanel && (
         <motion.div 
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           onClick={() => navigate('/payment-success')}
-          className="fixed bottom-32 left-6 right-6 z-[50] max-w-md mx-auto bg-[#0F172A]/90 backdrop-blur-xl border border-primary/30 p-4 rounded-[2rem] flex items-center justify-between cursor-pointer shadow-2xl shadow-primary/10"
+          className="fixed bottom-32 left-6 right-6 z-[50] max-w-md mx-auto bg-[#0F172A]/95 backdrop-blur-2xl border border-primary/30 p-4 rounded-[2.5rem] flex items-center justify-between cursor-pointer shadow-2xl shadow-primary/20"
         >
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30">
               <Clock size={20} className="text-primary animate-pulse" />
             </div>
             <div>
-              <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">Live Delivery</h4>
+              <h4 className="text-[10px] font-black text-primary uppercase tracking-widest">Live Run</h4>
               <p className="text-sm font-bold text-white line-clamp-1">{activeRun.item}</p>
             </div>
           </div>
-          <div className="bg-primary/10 px-4 py-2 rounded-xl flex items-center gap-2">
-            <span className="text-[10px] font-black text-primary">TRACK</span>
-            <ChevronRight size={14} className="text-primary" />
+          <div className="bg-primary px-4 py-2 rounded-2xl flex items-center gap-2">
+            <span className="text-[10px] font-black text-white">TRACK</span>
+            <ChevronRight size={14} className="text-white" />
           </div>
         </motion.div>
       )}
@@ -162,8 +163,8 @@ const RequesterDashboard = () => {
             <Button 
               onClick={() => setShowOrderPanel(true)}
               disabled={!!activeRun} 
-              className={`w-full max-w-md h-16 rounded-3xl text-xl font-black italic shadow-2xl gap-3 transition-all ${
-                activeRun ? 'bg-white/5 text-white/20 border border-white/5 cursor-not-allowed' : 'bg-primary hover:bg-orange-600 text-white shadow-primary/40'
+              className={`w-full max-w-md h-16 rounded-[2rem] text-xl font-black italic shadow-2xl gap-3 transition-all ${
+                activeRun ? 'bg-white/5 text-white/20 border border-white/5' : 'bg-primary hover:bg-orange-600 text-white shadow-primary/40'
               }`}
             >
               {activeRun ? "DELIVERY IN PROGRESS" : <><Plus size={24} strokeWidth={3} /> START A RUN</>}
@@ -185,7 +186,7 @@ const RequesterDashboard = () => {
 
               <div className="space-y-6 pb-12">
                 <div className="space-y-2">
-                  <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">What are we moving?</Label>
+                  <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Item Name</Label>
                   <Input 
                     placeholder="e.g. MTH201 Textbook" 
                     className="bg-white/5 border-white/10 h-14 rounded-2xl focus:ring-primary text-white"
@@ -195,14 +196,14 @@ const RequesterDashboard = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Pickup Location</Label>
+                    <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Pickup</Label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-4 text-primary" size={18} />
-                      <Input placeholder="Search Location..." className="bg-white/5 border-white/10 h-14 pl-12 rounded-2xl text-white" />
+                      <Input placeholder="Location..." className="bg-white/5 border-white/10 h-14 pl-12 rounded-2xl text-white" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Dropoff Location</Label>
+                    <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Dropoff</Label>
                     <div className="relative">
                       <Navigation className="absolute left-4 top-4 text-green-500" size={18} />
                       <Input placeholder="Where to?" className="bg-white/5 border-white/10 h-14 pl-12 rounded-2xl text-white" />
@@ -210,7 +211,6 @@ const RequesterDashboard = () => {
                   </div>
                 </div>
 
-                {/* --- ITEM VALUE DROPDOWN --- */}
                 <div className="space-y-2 relative">
                   <Label className="text-white/40 uppercase text-[10px] font-black tracking-widest">Item Value (Max ₦20k)</Label>
                   <div 
@@ -242,11 +242,11 @@ const RequesterDashboard = () => {
                 <div className="pt-4 border-t border-white/5">
                   <div className="flex justify-between items-center mb-6">
                     <div>
-                      <p className="text-white/40 text-xs font-bold uppercase">Estimated Delivery Fee</p>
+                      <p className="text-white/40 text-[10px] font-black uppercase">Fee</p>
                       <p className="text-3xl font-black text-white">₦500</p>
                     </div>
                     <div className="text-right">
-                       <p className="text-white/40 text-xs font-bold uppercase">Estimated Time</p>
+                       <p className="text-white/40 text-[10px] font-black uppercase">Est. Time</p>
                        <p className="text-lg font-bold text-primary">8-12 Mins</p>
                     </div>
                   </div>
