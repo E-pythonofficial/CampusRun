@@ -89,10 +89,7 @@ const RequesterDashboard = () => {
       {/* --- UPDATED NAVBAR: Fixed for Mobile --- */}
       <nav className="fixed top-0 left-0 right-0 z-[100] px-4 py-3 flex justify-between items-center bg-[#020617]/80 backdrop-blur-xl border-b border-white/5">
         <div className="flex items-center gap-2 shrink-0">
-          <Logo size="sm" />
-          <span className="font-major italic text-base md:text-lg tracking-tighter uppercase text-white">
-            CampusRun
-          </span>
+        <Logo size="sm" />
         </div>
         
         <div className="flex items-center gap-2">
