@@ -15,6 +15,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import MyRequests from "./pages/MyRequests";
 import PaymentSuccess from "./pages/PaymentSuccess";
+import LandingPage from "./pages/landingPage";
 
 // New Password Reset Flow Pages
 import ForgotPassword from "./pages/ForgotPassword";
@@ -43,9 +44,11 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<Landing />} />
+            <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+
+            <Route path="/" element={<LandingPage />} />
             
             {/* Password Reset Flow */}
             <Route path="/forgot-password" element={<ForgotPassword />} />
