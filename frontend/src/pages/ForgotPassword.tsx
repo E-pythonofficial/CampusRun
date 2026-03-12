@@ -24,11 +24,11 @@ const ForgotPassword = () => {
             <ArrowLeft size={14} /> Back to Login
           </button>
           <h2 className="text-2xl font-bold text-white mb-2">Reset Password</h2>
-          <p className="text-white/40 text-sm mb-6">Enter your Matric Number to receive a reset code.</p>
+          <p className="text-white/40 text-sm mb-6">Enter your Email to receive a reset code.</p>
           
           <form onSubmit={handleRequestOTP} className="space-y-4">
             <Input 
-              placeholder="CSC/2021/001" 
+              placeholder="johnnydrille26@gmail.com"
               className="bg-white/5 border-white/10 text-white h-14 rounded-2xl"
               onChange={(e) => setMatric(e.target.value)}
               required 

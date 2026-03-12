@@ -123,6 +123,7 @@ export default function LandingPage() {
   const navigate = useNavigate();
 
   const navLinks = [
+    { label: 'Home',  href: '#home'},
     { label: 'How It Works', href: '#how' },
     { label: 'Pricing',      href: '#pricing' },
     { label: 'Support',      href: '#support' },
@@ -162,15 +163,19 @@ export default function LandingPage() {
 
       {/* ── NAV ── */}
       <nav
-        className="fixed top-0 w-full z-[100] border-b-2"
-        style={{ background: 'rgba(13, 24, 41, 0.97)', backdropFilter: 'blur(12px)', borderColor: C.navy }}
+        className="fixed top-0 w-full z-[150] border-b-2"
+        style={{ 
+          background: 'rgba(13, 24, 41, 0.98)', 
+          backdropFilter: 'blur(12px)', 
+          borderColor: C.navy 
+        }}
       >
-        <div className="max-w-[1400px] mx-auto px-6 md:px-10 h-20 flex items-center justify-between">
-          <a href="#" className="font-display text-3xl tracking-wide" style={{ color: C.orange }}>
+        <div className="max-w-[1400px] mx-auto px-6 md:px-10 h-20 flex items-center justify-between relative">
+          <a href="#" className="font-display text-3xl tracking-wide relative z-[160]" style={{ color: C.orange }}>
             <Logo size="md" />
-            {/* CAMPUS RUN */}
           </a>
 
+          {/* Desktop Links */}
           <div className="hidden lg:flex gap-10 text-[11px] font-bold uppercase tracking-[0.2em]">
             {navLinks.map(l => (
               <a key={l.href} href={l.href}
@@ -180,45 +185,68 @@ export default function LandingPage() {
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Ghost navy button */}
-            {/* <button */}
-              {/* className="hidden lg:block px-6 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest border-2 transition-all hover:opacity-80" */}
-              {/* style={{ borderColor: C.navy, color: C.navy }} */}
-            {/* > */}
-              {/* Log In */}
-            {/* /</button> */}
+          <div className="flex items-center gap-3 relative z-[160]">
             <button
               className="hidden lg:block px-8 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest text-white transition-all hover:opacity-90"
               style={{ background: C.orange }}
-            onClick={() => navigate('/landing')}>
+              onClick={() => navigate('/landing')}>
               Sign Up Free
             </button>
-            <button className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}
-                style={{ color: C.cream }}>
-              {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            
+            {/* Toggle Button - Increased padding for easier clicking */}
+            <button 
+              className="lg:hidden p-4 -mr-4 outline-none" 
+              onClick={(e) => {
+                e.preventDefault();
+                setMobileOpen(!mobileOpen);
+              }}
+              style={{ color: C.cream }}
+            >
+              {mobileOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile menu */}
+        {/* Mobile menu - The "Floating Layer" Fix */}
         <AnimatePresence>
           {mobileOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="lg:hidden overflow-hidden border-t-2"
-              style={{ background: C.cream, borderColor: C.navy }}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              /* CRITICAL FIXES:
+                 1. absolute top-[78px]: Sits exactly below the border.
+                 2. pointer-events-auto: Forces the browser to allow clicks here.
+                 3. z-[200]: Higher than everything else on the page.
+              */
+              className="lg:hidden absolute top-[78px] left-0 w-full z-[200] border-b-4 shadow-2xl pointer-events-auto"
+              style={{ background: C.navyMid, borderColor: C.orange }}
             >
-              <div className="px-6 py-8 flex flex-col gap-6">
+              <div className="flex flex-col p-8 gap-2">
                 {navLinks.map(l => (
-                  <a key={l.href} href={l.href} onClick={() => setMobileOpen(false)}
-                    className="text-xl font-bold uppercase tracking-widest transition-colors"
-                    style={{ color: C.navy }}
-                  >{l.label}</a>
+                  <a 
+                    key={l.href} 
+                    href={l.href} 
+                    onClick={(e) => {
+                      // Small delay ensures the click registers before the menu vanishes
+                      setTimeout(() => setMobileOpen(false), 100);
+                    }}
+                    className="text-2xl font-bold uppercase tracking-widest py-4 px-2 block transition-all active:bg-white/5 relative z-[210] pointer-events-auto"
+                    style={{ color: C.cream }}
+                  >
+                    {l.label}
+                  </a>
                 ))}
-                <button className="text-white px-8 py-4 rounded-full text-sm font-bold uppercase tracking-widest w-full mt-2"
-                  style={{ background: C.orange }}>
+                
+                <button 
+                  className="w-full py-5 rounded-2xl text-base font-bold uppercase tracking-widest text-white mt-4 shadow-xl active:scale-[0.98] transition-transform relative z-[210] pointer-events-auto"
+                  style={{ background: C.orange }}
+                  onClick={() => {
+                    setMobileOpen(false);
+                    navigate('/landing');
+                  }}
+                >
                   Sign Up Free
                 </button>
               </div>
@@ -228,25 +256,24 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ── */}
-      {/* ── HERO ── */}
-<section ref={heroRef} className="relative pt-28 pb-16 px-6 md:px-10 min-h-screen flex items-center overflow-hidden">
-  {/* Cream-to-orange soft glow */}
-  <div className="absolute top-10 right-0 w-[700px] h-[700px] rounded-full blur-[140px] opacity-40 -z-0"
-    style={{ background: C.orange }} />
-  {/* Navy tint bottom-left */}
-  <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-10 -z-0"
-    style={{ background: C.navy }} />
+        <section id="home" ref={heroRef} className="relative pt-28 pb-16 px-6 md:px-10 min-h-screen flex items-center overflow-hidden">
+        {/* Cream-to-orange soft glow */}
+        <div className="absolute top-10 right-0 w-[700px] h-[700px] rounded-full blur-[140px] opacity-40 -z-0"
+                style={{ background: C.orange }} />
+        {/* Navy tint bottom-left */}
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full blur-[100px] opacity-10 -z-0"
+            style={{ background: C.navy }} />
 
-  <motion.div style={{ y: heroY, opacity: heroOpacity }}
-    className="relative z-10 max-w-[1400px] mx-auto w-full grid lg:grid-cols-2 gap-10 items-center">
+        <motion.div style={{ y: heroY, opacity: heroOpacity }}
+            className="relative z-10 max-w-[1400px] mx-auto w-full grid lg:grid-cols-2 gap-10 items-center">
 
-    <motion.div variants={stagger} initial="hidden" animate="visible">
-      {/* Tag */}
-      <motion.div variants={fadeUp}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
-        style={{ background: C.orangeLight, color: C.orange }}>
-        <Zap size={12} fill="currentColor" /> Student-Powered Campus Delivery
-      </motion.div>
+        <motion.div variants={stagger} initial="hidden" animate="visible">
+        {/* Tag */}
+        <motion.div variants={fadeUp}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
+            style={{ background: C.orangeLight, color: C.orange }}>
+            <Zap size={12} fill="currentColor" /> Student-Powered Campus Delivery
+        </motion.div>
 
       {/* ↓ REDUCED font size here */}
       <motion.h1 variants={fadeUp}

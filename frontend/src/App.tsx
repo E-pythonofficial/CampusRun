@@ -16,6 +16,11 @@ import NotFound from "./pages/NotFound";
 import MyRequests from "./pages/MyRequests";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import LandingPage from "./pages/landingPage";
+import Profile from "./pages/Profile";
+import DeleteAccount from "./pages/DeleteAccount";
+import NotificationSettings from "./pages/NotificationSettings";
+import PrivacySecurity from "./pages/PrivacySecurity";
+import Support from "./pages/Support";
 
 // New Password Reset Flow Pages
 import ForgotPassword from "./pages/ForgotPassword";
@@ -47,6 +52,11 @@ const App = () => (
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/delete-account" element={<DeleteAccount />} />
+            <Route path="/notification-settings" element={<NotificationSettings />} />
+            <Route path="/privacysettings" element={<PrivacySecurity />} />
+            <Route path="/support" element={<Support />} />
 
             <Route path="/" element={<LandingPage />} />
             

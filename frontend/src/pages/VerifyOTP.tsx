@@ -33,7 +33,7 @@ const VerifyOTP = () => {
         className="backdrop-blur-xl bg-white/5 border border-white/10 p-8 rounded-[2.5rem] w-full max-w-md text-center"
       >
         <h2 className="text-2xl font-bold text-white mb-2">Check your mail</h2>
-        <p className="text-white/40 text-sm mb-8">We sent a 4-digit code to your student email.</p>
+        <p className="text-white/40 text-sm mb-8">We sent a 4-digit code to your email.</p>
         
         <div className="flex justify-center gap-4 mb-8">
           {otp.map((digit, idx) => (
