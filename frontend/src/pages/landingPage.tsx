@@ -189,7 +189,7 @@ export default function LandingPage() {
             <button
               className="hidden lg:block px-8 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest text-white transition-all hover:opacity-90"
               style={{ background: C.orange }}
-              onClick={() => navigate('/landing')}>
+              onClick={() => navigate('/dispatcher')}>
               Sign Up Free
             </button>
             

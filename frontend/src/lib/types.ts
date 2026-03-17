@@ -21,39 +21,28 @@ export interface User {
   phone: string;
   matricNumber: string;
   department: string;
-
   role: UserRole;
-
   dispatcherStatus?: DispatcherApprovalStatus;
-
-  // Optional authentication fields (needed for AuthContext)
   email?: string;
   username?: string;
 }
 
 export interface Delivery {
   id: string;
-
   requesterId: string;
   requesterName: string;
-
   dispatcherId?: string;
   dispatcherName?: string;
-
   itemDescription: string;
   itemValue: number;
-
+  fee: number; // Added for UI display
   pickupLocation: string;
   dropoffLocation: string;
-
   pin: string;
-
   status: DeliveryStatus;
-
   createdAt: Date;
   acceptedAt?: Date;
   completedAt?: Date;
-
   rating?: number;
   comment?: string;
 }
@@ -65,6 +54,7 @@ export interface DispatcherStats {
   strikes: number;
   averageRating: number;
   reliability: number;
+  totalEarnings: number; // Added for the Wallet section
 }
 
 export interface LeaderboardEntry {

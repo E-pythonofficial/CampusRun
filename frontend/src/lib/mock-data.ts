@@ -1,13 +1,60 @@
 import { Delivery, DispatcherStats, LeaderboardEntry, User } from './types';
 
-export const mockUser: User = {
-  id: '1',
-  fullName: 'Adebayo Oluwaseun',
-  phone: '08012345678',
-  matricNumber: 'CSC/2021/001',
-  department: 'Computer Science',
-  role: 'requester',
-};
+// Updated to export mockUsers as an array to support the Admin Dashboard
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    fullName: 'Adebayo Oluwaseun',
+    phone: '08012345678',
+    matricNumber: 'CSC/2021/001',
+    department: 'Computer Science',
+    role: 'dispatcher',
+    dispatcherStatus: 'approved',
+    email: 'johnnydrille28@gmail.com'
+  },
+  {
+    id: '2',
+    fullName: 'Chinwe Okafor',
+    phone: '08022223333',
+    matricNumber: 'BUS/2022/120',
+    department: 'Business Admin',
+    role: 'dispatcher',
+    dispatcherStatus: 'approved',
+    email: 'chinwe@campusrun.com'
+  },
+  {
+    id: '3',
+    fullName: 'Emeka Nwosu',
+    phone: '08044445555',
+    matricNumber: 'ENG/2021/088',
+    department: 'Mechanical Engineering',
+    role: 'dispatcher',
+    dispatcherStatus: 'approved',
+    email: 'emeka@student.edu'
+  },
+  {
+    id: '4',
+    fullName: 'Fatima Bello',
+    phone: '07011119999',
+    matricNumber: 'LAW/2023/042',
+    department: 'Law',
+    role: 'dispatcher',
+    email: 'fatima@student.edu'
+  },
+  {
+    id: '5',
+    fullName: 'Kola Abiola',
+    phone: '09012344321',
+    matricNumber: 'MED/2020/015',
+    department: 'Medicine',
+    role: 'dispatcher',
+    dispatcherStatus: 'pending', // This will now correctly appear in the Approval Queue
+    email: 'kola@student.edu'
+  }
+];
+
+// Keep single mockUser export for parts of the app that expect only the current user
+export const mockUser: User = mockUsers[0];
 
 export const mockDeliveries: Delivery[] = [
   {
@@ -18,6 +65,7 @@ export const mockDeliveries: Delivery[] = [
     dispatcherName: 'Chinwe Okafor',
     itemDescription: 'Course textbook - MTH201',
     itemValue: 5000,
+    fee: 800,
     pickupLocation: 'Faculty of Science Building',
     dropoffLocation: 'Hall 3, Room 214',
     pin: '4829',
@@ -33,6 +81,7 @@ export const mockDeliveries: Delivery[] = [
     dispatcherName: 'Emeka Nwosu',
     itemDescription: 'Lab coat',
     itemValue: 3000,
+    fee: 600,
     pickupLocation: 'Campus Gate',
     dropoffLocation: 'Chemistry Lab',
     pin: '7156',
@@ -51,6 +100,7 @@ export const mockDeliveries: Delivery[] = [
     dispatcherName: 'Chinwe Okafor',
     itemDescription: 'Laptop charger',
     itemValue: 8000,
+    fee: 1000,
     pickupLocation: 'SUB Building',
     dropoffLocation: 'Engineering Faculty',
     pin: '3291',
@@ -64,6 +114,7 @@ export const mockDeliveries: Delivery[] = [
     requesterName: 'Ibrahim Musa',
     itemDescription: 'Assignment notebook',
     itemValue: 1500,
+    fee: 400,
     pickupLocation: 'Library',
     dropoffLocation: 'Hall 5, Room 102',
     pin: '8834',
@@ -79,6 +130,7 @@ export const mockDispatcherStats: DispatcherStats = {
   strikes: 2,
   averageRating: 4.7,
   reliability: 83,
+  totalEarnings: 33600, // Fixed the 'does not exist' error in DispatcherDashboard
 };
 
 export const mockLeaderboard: LeaderboardEntry[] = [
@@ -87,13 +139,4 @@ export const mockLeaderboard: LeaderboardEntry[] = [
   { rank: 3, dispatcherId: '12', name: 'Amina Yusuf', completed: 71, reliability: 92, rating: 4.7, badge: 'bronze' },
   { rank: 4, dispatcherId: '13', name: 'David Obi', completed: 64, reliability: 90, rating: 4.6, badge: null },
   { rank: 5, dispatcherId: '14', name: 'Grace Eze', completed: 58, reliability: 88, rating: 4.5, badge: null },
-];
-
-export const mockUsers: User[] = [
-  mockUser,
-  { id: '2', fullName: 'Chinwe Okafor', phone: '08023456789', matricNumber: 'ENG/2020/045', department: 'Engineering', role: 'dispatcher', dispatcherStatus: 'approved' },
-  { id: '3', fullName: 'Emeka Nwosu', phone: '08034567890', matricNumber: 'BUS/2021/012', department: 'Business Admin', role: 'dispatcher', dispatcherStatus: 'approved' },
-  { id: '4', fullName: 'Fatima Bello', phone: '08045678901', matricNumber: 'MED/2022/008', department: 'Medicine', role: 'requester' },
-  { id: '5', fullName: 'Ibrahim Musa', phone: '08056789012', matricNumber: 'LAW/2021/023', department: 'Law', role: 'requester' },
-  { id: '6', fullName: 'Ngozi Adamu', phone: '08067890123', matricNumber: 'ART/2023/019', department: 'Fine Arts', role: 'dispatcher', dispatcherStatus: 'pending' },
 ];

@@ -75,7 +75,7 @@ const RequesterDashboard = () => {
           onClick={() => setMenuOpen(true)}
           className="p-4 rounded-2xl bg-[#161D2F]/90 backdrop-blur-xl border border-white/5 text-white shadow-2xl pointer-events-auto"
         >
-          <Menu size={20} />
+          <Menu size={25} />
         </motion.button>
 
         <div className="flex items-center gap-3 pointer-events-auto">
@@ -85,7 +85,7 @@ const RequesterDashboard = () => {
           </div>
           <button
             onClick={() => navigate('/profile')}
-            className="w-11 h-11 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 shadow-lg backdrop-blur-md"
+            className="w-16 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 shadow-lg backdrop-blur-md"
           >
             <User size={20} />
           </button>
@@ -247,7 +247,7 @@ const RequesterDashboard = () => {
               </div>
 
               <Button
-                onClick={handlePayment}
+                onClick={handlePayment }
                 className="w-full h-16 bg-orange-600 hover:bg-orange-700 rounded-2xl font-black text-[11px] tracking-[0.3em] flex items-center justify-center gap-3 shadow-xl shadow-orange-900/20 uppercase mt-4 transition-all"
               >
                 <CreditCard size={18} /> Pay Now
@@ -272,8 +272,8 @@ const RequesterDashboard = () => {
                 <MenuLink icon={User} label="Profile" onClick={() => navigate('/profile')} />
                 <MenuLink icon={ShieldCheck} label="Safety" onClick={() => navigate('/privacysettings')} />
                 <MenuLink icon={Info} label="Support" onClick={() => navigate('/support')} />
-                <button onClick={() => logout()} className="flex items-center gap-4 text-red-500/50 font-black text-[9px] uppercase tracking-[0.2em] mt-12 px-4 py-4 border border-red-500/10 rounded-2xl w-full">
-                  <LogOut size={16} /> Sign Out
+                <button onClick={() => logout()} className="flex items-center gap-4 text-red-400/50 font-black text-[9px] uppercase tracking-[0.2em] mt-12 px-4 py-4 border border-red-500/10 rounded-2xl w-full">
+                  <LogOut size={30} /> Sign Out
                 </button>
               </div>
             </motion.div>

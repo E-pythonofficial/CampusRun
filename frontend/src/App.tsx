@@ -67,7 +67,7 @@ const App = () => (
 
             {/* Protected Dashboard Routes */}
             <Route 
-              path="/requester/*" 
+              path="/requester/*"
               element={
                 <ProtectedRoute allowedRole="requester">
                   <RequesterDashboard />
@@ -78,14 +78,7 @@ const App = () => (
             <Route path="/my-requests" element={<MyRequests />} />
             {/* payment success */}
             <Route path="/payment-success" element={<PaymentSuccess />} />
-            <Route 
-              path="/dispatcher/*" 
-              element={
-                <ProtectedRoute allowedRole="dispatcher">
-                  <DispatcherDashboard />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/dispatcher" element={<DispatcherDashboard />} />
             <Route 
               path="/admin/*" 
               element={
