@@ -10,9 +10,23 @@ import { Button } from '@/components/ui/button';
 import Logo from '@/components/Logo';
 
 const MyRequests = () => {
-  const { user } = useAuth(); // Access user to scope history/active runs
+  const { user, theme } = useAuth(); // Access user and theme
   const navigate = useNavigate();
   const [activeRun, setActiveRun] = useState<any>(null);
+
+  const isDark = theme === 'dark';
+
+  // Dynamic theme classes
+  const themeClass = {
+    bg: isDark ? 'bg-[#020617]' : 'bg-[#F8FAFC]',
+    nav: isDark ? 'bg-[#020617]/80 border-white/5' : 'bg-white/80 border-slate-200',
+    text: isDark ? 'text-white' : 'text-slate-900',
+    subText: isDark ? 'text-white/40' : 'text-slate-500',
+    card: isDark ? 'bg-white/[0.02] border-white/5' : 'bg-white border-slate-200 shadow-sm',
+    cardHover: isDark ? 'hover:bg-white/[0.04]' : 'hover:bg-slate-50',
+    innerCard: isDark ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-200',
+    iconBg: isDark ? 'bg-white/5' : 'bg-slate-100'
+  };
 
   // 1. Persistent State Logic: Pull user-specific run
   useEffect(() => {
@@ -56,25 +70,27 @@ const MyRequests = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'IN_TRANSIT': return 'text-primary bg-primary/10 border-primary/20';
+      case 'IN_TRANSIT': return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
       case 'COMPLETED': return 'text-green-500 bg-green-500/10 border-green-500/20';
-      default: return 'text-white/40 bg-white/5 border-white/10';
+      default: return isDark ? 'text-white/40 bg-white/5 border-white/10' : 'text-slate-400 bg-slate-100 border-slate-200';
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+    <div className={`min-h-screen ${themeClass.bg} ${themeClass.text} flex flex-col transition-colors duration-500`}>
       {/* --- NAVBAR --- */}
-      <nav className="border-b border-white/5 px-6 py-4 flex justify-between items-center bg-[#020617]/80 backdrop-blur-md sticky top-0 z-50">
+      <nav className={`border-b ${themeClass.nav} px-6 py-4 flex justify-between items-center backdrop-blur-md sticky top-0 z-50 transition-colors`}>
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
             onClick={() => navigate('/requester')} 
-            className="rounded-full h-10 w-10 p-0 text-white/40 hover:text-white hover:bg-white/5"
+            className={`rounded-full h-10 w-10 p-0 ${isDark ? 'text-white/40 hover:text-white hover:bg-white/5' : 'text-slate-400 hover:text-slate-900 hover:bg-slate-100'}`}
           >
             <ArrowLeft size={20} />
           </Button>
-          <Logo size="sm" />
+          <div className={!isDark ? 'brightness-0 opacity-80' : ''}>
+            <Logo size="sm" />
+          </div>
         </div>
         <h1 className="font-major italic text-lg tracking-tighter uppercase">Request History</h1>
       </nav>
@@ -83,11 +99,11 @@ const MyRequests = () => {
         <header className="flex justify-between items-end">
           <div>
             <h2 className="text-4xl font-black italic tracking-tighter uppercase">My Runs</h2>
-            <p className="text-white/40 text-sm">Review your campus logistics and secure PINs.</p>
+            <p className={`${themeClass.subText} text-sm`}>Review your campus logistics and secure PINs.</p>
           </div>
           {activeRun && (
              <div className="text-right hidden md:block">
-                <p className="text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">1 Active Delivery</p>
+                <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest animate-pulse">1 Active Delivery</p>
              </div>
           )}
         </header>
@@ -103,15 +119,15 @@ const MyRequests = () => {
                 transition={{ delay: i * 0.05 }}
                 className={`group relative border rounded-[2rem] p-6 transition-all cursor-default ${
                     run.status === 'IN_TRANSIT' 
-                    ? 'bg-primary/[0.03] border-primary/20 shadow-lg shadow-primary/5' 
-                    : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04]'
+                    ? 'bg-orange-500/[0.03] border-orange-500/20 shadow-lg shadow-orange-500/5' 
+                    : `${themeClass.card} ${themeClass.cardHover}`
                 }`}
               >
                 {/* Header: ID & Status */}
                 <div className="flex justify-between items-start mb-6">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-black text-white/20 tracking-[0.2em] uppercase">Request ID: {run.id}</span>
-                    <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors">{run.item}</h3>
+                    <span className={`text-[10px] font-black ${isDark ? 'text-white/20' : 'text-slate-300'} tracking-[0.2em] uppercase`}>Request ID: {run.id}</span>
+                    <h3 className={`text-xl font-bold ${themeClass.text} group-hover:text-orange-500 transition-colors`}>{run.item}</h3>
                   </div>
                   <div className="flex items-center gap-2">
                     {run.status === 'IN_TRANSIT' && (
@@ -132,15 +148,15 @@ const MyRequests = () => {
                 {/* Details Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-3 text-sm text-white/60">
-                      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                        <MapPin size={14} className="text-primary" />
+                    <div className={`flex items-center gap-3 text-sm ${isDark ? 'text-white/60' : 'text-slate-600'}`}>
+                      <div className={`w-8 h-8 rounded-lg ${themeClass.iconBg} flex items-center justify-center`}>
+                        <MapPin size={14} className="text-orange-500" />
                       </div>
                       <span className="truncate max-w-[100px] md:max-w-none">{run.pickup || run.from}</span>
-                      <ChevronRight size={12} className="text-white/20 shrink-0" />
+                      <ChevronRight size={12} className={`${isDark ? 'text-white/20' : 'text-slate-300'} shrink-0`} />
                       <span className="truncate max-w-[100px] md:max-w-none">{run.dropoff || run.to}</span>
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-white/40">
+                    <div className={`flex items-center gap-3 text-sm ${themeClass.subText}`}>
                       <Clock size={14} />
                       <span>{run.timestamp || run.date}</span>
                     </div>
@@ -148,17 +164,19 @@ const MyRequests = () => {
 
                   {/* Operational Security: PIN Area */}
                   <div className={`flex items-center justify-between p-4 rounded-2xl border ${
-                      run.status === 'IN_TRANSIT' ? 'bg-black/60 border-primary/20' : 'bg-black/40 border-white/5'
+                      run.status === 'IN_TRANSIT' 
+                      ? `${isDark ? 'bg-black/60' : 'bg-orange-50'} border-orange-500/20` 
+                      : themeClass.innerCard
                   }`}>
                     <div className="flex items-center gap-3">
-                      <ShieldCheck size={20} className={run.status === 'IN_TRANSIT' ? "text-primary" : "text-white/10"} />
+                      <ShieldCheck size={20} className={run.status === 'IN_TRANSIT' ? "text-orange-500" : (isDark ? "text-white/10" : "text-slate-200")} />
                       <div>
-                        <p className="text-[9px] text-white/30 uppercase font-black tracking-widest">Handshake PIN</p>
-                        <p className="text-xs text-white/60">Dispatcher: {typeof run.dispatcher === 'object' ? run.dispatcher.name : run.dispatcher}</p>
+                        <p className={`text-[9px] ${isDark ? 'text-white/30' : 'text-slate-400'} uppercase font-black tracking-widest`}>Handshake PIN</p>
+                        <p className={`text-xs ${isDark ? 'text-white/60' : 'text-slate-500'}`}>Dispatcher: {typeof run.dispatcher === 'object' ? run.dispatcher.name : run.dispatcher}</p>
                       </div>
                     </div>
                     <span className={`text-2xl font-mono font-black tracking-widest ${
-                        run.status === 'IN_TRANSIT' ? 'text-primary' : 'text-white/20'
+                        run.status === 'IN_TRANSIT' ? 'text-orange-500' : (isDark ? 'text-white/20' : 'text-slate-300')
                     }`}>
                       {run.pin}
                     </span>
@@ -167,15 +185,15 @@ const MyRequests = () => {
 
                 {/* Status Footer - Live Track Trigger */}
                 {run.status === 'IN_TRANSIT' && (
-                  <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                  <div className={`mt-4 pt-4 border-t ${isDark ? 'border-white/5' : 'border-slate-100'} flex items-center justify-between`}>
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                        <p className="text-[10px] font-bold text-primary uppercase">Escrow Protection Active • Item is moving</p>
+                        <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                        <p className="text-[10px] font-bold text-orange-500 uppercase">Escrow Protection Active • Item is moving</p>
                     </div>
                     <Button 
                         size="sm"
                         onClick={() => navigate('/payment-success')}
-                        className="bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-[10px] font-black rounded-xl h-8 px-4"
+                        className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-500 border border-orange-500/20 text-[10px] font-black rounded-xl h-8 px-4"
                     >
                         TRACK LIVE
                     </Button>
@@ -188,7 +206,7 @@ const MyRequests = () => {
       </main>
 
       <footer className="p-8 text-center mt-auto">
-        <p className="text-[10px] text-white/20 font-major uppercase tracking-widest">@2026 CampusRun Logistics</p>
+        <p className={`text-[10px] ${isDark ? 'text-white/20' : 'text-slate-300'} font-major uppercase tracking-widest`}>@2026 CampusRun Logistics</p>
       </footer>
     </div>
   );

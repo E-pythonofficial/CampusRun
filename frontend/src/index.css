@@ -4,8 +4,9 @@
 
 @layer base {
   :root {
-    /* Font Mapping */
-    --font-major: 'Fondamento', serif;
+    /* Updated Font Mapping */
+    /* Using Roboto Serif for that premium, high-contrast look */
+    --font-major: "Roboto Serif", serif; 
     --font-playful: 'Love Ya Like A Sister', cursive;
     --font-body: 'Inter', sans-serif;
 
@@ -19,24 +20,43 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: var(--font-body); /* Inter remains for small reading text */
+    font-family: var(--font-body);
   }
 
-  /* MAJOR HEADINGS: Fondamento */
+  /* MAJOR HEADINGS: Roboto Serif */
+  /* We add 'italic' and 'tracking-tight' to match your screenshots */
   h1, .font-display {
     font-family: var(--font-major) !important;
-    font-weight: 400; /* Fondamento is naturally bold enough */
-    letter-spacing: 0.02em;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -0.02em;
   }
 
-  /* SUB-HEADINGS & ACCENTS: Love Ya Like A Sister */
-  h2, h3, h4, .tracking-wider {
+  /* NEW REQUEST & MODAL HEADINGS: Roboto Serif */
+  /* This ensures "New Request" in your modal uses the updated serif font */
+  h2, .font-modal-title {
+    font-family: var(--font-major) !important;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: -0.01em;
+  }
+
+  /* PLAYFUL ACCENTS: Love Ya Like A Sister */
+  /* Used for "How it Works" or step descriptions */
+  h3, h4, .font-accent {
     font-family: var(--font-playful) !important;
     letter-spacing: 0.05em;
   }
 }
 
 @layer utilities {
+  /* Utility to apply Roboto Serif without italics if needed */
+  .font-serif-plain {
+    font-family: var(--font-major) !important;
+    font-style: normal;
+  }
+
   .text-gradient-orange {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(26, 100%, 50%), hsl(38, 100%, 55%));
@@ -51,13 +71,9 @@
     backdrop-filter: blur(12px);
     border: 1px solid hsla(0, 0%, 100%, 0.08);
   }
-  
 }
 
-
 @layer components {
-  /* ... your other component classes ... */
-
   /* The outer body of the phone */
   .phone-frame {
     @apply border-[10px] border-[#0F1C2F] rounded-[3rem] shadow-2xl relative bg-black;
@@ -74,13 +90,11 @@
   /* The actual screen inside the frame */
   .phone-screen {
     @apply rounded-[2rem] bg-[#0A1121] overflow-hidden relative;
-    height: 600px; /* Adjust height as needed */
+    height: 600px;
   }
 
   .step-line {
-  @apply absolute left-[27px] top-10 bottom-10 w-[3px] bg-primary/40 rounded-full;
-  box-shadow: 0 0 10px hsla(26, 100%, 50%, 0.2);
-}
-
-  /* ... your other utilities ... */
+    @apply absolute left-[27px] top-10 bottom-10 w-[3px] bg-primary/40 rounded-full;
+    box-shadow: 0 0 10px hsla(26, 100%, 50%, 0.2);
+  }
 }

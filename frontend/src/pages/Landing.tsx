@@ -17,11 +17,6 @@ const Landing = () => {
     }, 800);
   };
 
-  const navLinks = [
-    { label: 'How It Works', href: '#how' },
-    { label: 'Safety', href: '#safety' },
-  ];
-
   const steps = [
     { 
       icon: CreditCard, 
@@ -46,8 +41,14 @@ const Landing = () => {
         .bg-navy-gradient {
           background: radial-gradient(circle at top right, #1e3a8a 0%, #050914 50%);
         }
-        .font-major { font-family: 'Bebas Neue', sans-serif; }
-        .font-playful { font-family: 'Barlow', sans-serif; }
+        /* Updated to use your CSS Variables from globals.css */
+        .font-major { 
+          font-family: var(--font-major), serif; 
+          font-style: italic;
+        }
+        .font-playful { 
+          font-family: var(--font-playful), cursive; 
+        }
       `}</style>
 
       {/* --- NAV --- */}
@@ -57,8 +58,8 @@ const Landing = () => {
           
           <div className="flex items-center gap-4">
             <div className="hidden md:flex gap-4">
-               <Button variant="ghost" onClick={() => navigate('/login')} className="text-white">Login</Button>
-               <Button onClick={() => navigate('/register')} className="bg-primary text-white">Join the Run</Button>
+                <Button variant="ghost" onClick={() => navigate('/login')} className="text-white">Login</Button>
+                <Button onClick={() => navigate('/register')} className="bg-primary text-white">Join the Run</Button>
             </div>
             
             {/* Mobile Toggle */}
@@ -100,7 +101,8 @@ const Landing = () => {
                 <span className="text-xs font-medium text-primary uppercase tracking-wider">Campus-Powered Delivery</span>
               </div>
 
-              <h1 className="font-major text-6xl md:text-8xl leading-tight mb-6">
+              {/* Applied font-major for Roboto Serif Italic */}
+              <h1 className="font-major text-6xl md:text-8xl leading-tight mb-6 tracking-tight">
                 Fast. Secure.{' '}
                 <span className="text-primary">Campus Powered.</span>
               </h1>
@@ -132,7 +134,7 @@ const Landing = () => {
               </div>
             </motion.div>
 
-            {/* --- FIXED CENTERED HOW IT WORKS SECTION --- */}
+            {/* --- HOW IT WORKS SECTION --- */}
             <div id="how" className="mt-24 mb-32 w-full flex flex-col items-center">
               <motion.h2 
                 initial={{ opacity: 0, y: 20 }}
@@ -160,7 +162,6 @@ const Landing = () => {
 
                       {/* Screen Content */}
                       <div className="h-full w-full bg-[#050914] p-6 pt-16 flex flex-col gap-10 relative">
-                        {/* Animated Line */}
                         <motion.div 
                           initial={{ scaleY: 0 }}
                           whileInView={{ scaleY: 1 }}
@@ -183,7 +184,7 @@ const Landing = () => {
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-2">
                                  <step.icon size={16} className="text-primary" />
-                                 <h4 className="font-major text-white text-base italic leading-tight">{step.title}</h4>
+                                 <h4 className="font-major text-white text-base italic leading-tight tracking-tight">{step.title}</h4>
                               </div>
                               <p className="font-playful text-[10px] text-white/50 leading-relaxed">
                                 {step.desc}
@@ -194,14 +195,14 @@ const Landing = () => {
 
                         <div className="mt-auto pb-4">
                           <div className="w-full py-3 rounded-xl bg-primary/10 border border-primary/20 text-center">
-                            <span className="text-primary font-major italic text-[10px] animate-pulse tracking-widest">TRACKING ACTIVE RUN...</span>
+                            <span className="text-primary font-major italic text-[10px] animate-pulse tracking-widest uppercase">Tracking Active Run...</span>
                           </div>
                         </div>
                       </div>
                     </motion.div>
                 </div>
 
-                {/* Feature Cards - Only visible on Large Screens */}
+                {/* Feature Cards */}
                 <div className="hidden lg:flex flex-col gap-4 w-[280px]">
                   {[
                     { icon: Zap, title: 'Lightning Fast', desc: 'Deliveries in under 30 mins' },
@@ -243,7 +244,7 @@ const Landing = () => {
 
       {/* Footer */}
       <footer className="container py-8 text-center border-t border-white/5">
-        <p className="text-xs text-muted-foreground/60 font-major tracking-widest">
+        <p className="text-xs text-muted-foreground/60 font-major tracking-widest uppercase">
           © 2026 CAMPUSRUN. BUILT FOR BOWEN STUDENTS, BY STUDENTS.
         </p>
       </footer>

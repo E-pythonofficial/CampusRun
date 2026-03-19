@@ -123,7 +123,7 @@ const Register = () => {
               
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-white font-major">
-                  {role === 'dispatcher' ? 'Dispatcher Verification' : (isStaff ? 'Staff/Non-Staff Registration' : 'Student Details')}
+                  {role === 'dispatcher' ? 'Dispatcher Verification' : (isStaff ? 'Staff / Non-Staff Registration' : 'Student Details')}
                 </h2>
                 {role === 'requester' && (
                    <button 
