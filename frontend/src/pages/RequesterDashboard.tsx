@@ -69,7 +69,7 @@ const RequesterDashboard = () => {
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: "AIzaSyDE0qqaDyLjmOgcphUO1_PZbNYKnBMqFV0",
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY, 
     libraries
   });
 
@@ -395,7 +395,7 @@ const RequesterDashboard = () => {
                       Select Value Range
                     </option>
                     <option value="below-5k"   className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>Under ₦5,000</option>
-                    <option value="5k-15k"     className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>₦5,000 - ₦15,000</option>
+                    <option value="5k-15k"      className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>₦5,000 - ₦15,000</option>
                     <option value="15k-30k"    className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>₦15,000 - ₦30,000</option>
                     <option value="30k-50k"    className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>₦30,000 - ₦50,000</option>
                     <option value="50k-100k"   className={isDark ? 'bg-[#0F172A]' : 'bg-white'}>₦50,000 - ₦100,000</option>
@@ -452,7 +452,6 @@ const RequesterDashboard = () => {
               <div className="flex justify-between items-center mb-16">
                 
                 {/* ── LOGO WRAPPER ── */}
-                {/* We use Tailwind arbitrary variants to force children spans to be black in light mode */}
                 <div className={`transition-all duration-300 px-4 py-2 rounded-2xl
                   ${isDark 
                     ? 'bg-white/5 ring-1 ring-white/10' 
@@ -473,7 +472,7 @@ const RequesterDashboard = () => {
 
               <div className="space-y-3">
                 <MenuLink icon={History}     label="My Requests" isDark={isDark} onClick={() => navigate('/my-requests')} />
-                <MenuLink icon={User}        label="Profile"     isDark={isDark} onClick={() => navigate('/profile')} />
+                <MenuLink icon={User}         label="Profile"     isDark={isDark} onClick={() => navigate('/profile')} />
                 <MenuLink icon={ShieldCheck} label="Safety"      isDark={isDark} onClick={() => navigate('/privacysettings')} />
                 <MenuLink icon={Info}        label="Support"     isDark={isDark} onClick={() => navigate('/support')} />
 
