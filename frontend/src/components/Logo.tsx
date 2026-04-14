@@ -1,33 +1,44 @@
-import { MapPin } from 'lucide-react';
-
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
+  light?: boolean;
 }
 
 const sizeMap = {
-  sm: { icon: 20, text: 'text-lg' },
-  md: { icon: 28, text: 'text-2xl' },
-  lg: { icon: 40, text: 'text-4xl' },
+  sm: { img: 24, text: '1.125rem' },
+  md: { img: 32, text: '1.5rem' },
+  lg: { img: 48, text: '2.25rem' },
 };
 
-const Logo = ({ size = 'md' }: LogoProps) => {
+const Logo = ({ size = 'md', light = false }: LogoProps) => {
   const s = sizeMap[size];
+  
+  // Since it's in the public folder, we just use the string path.
+  // Note: No "import mascot from..." is needed at the top.
+  const mascotPath = "/mascot2.png"; 
+
   return (
-    <div className="flex items-center gap-2">
-      <div className="relative">
-        <MapPin size={s.icon} className="text-primary" strokeWidth={2.5} />
-        <svg
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%]"
-          width={s.icon * 0.4}
-          height={s.icon * 0.4}
-          viewBox="0 0 16 16"
-          fill="none"
-        >
-          <path d="M3 8H13M9 4L13 8L9 12" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <img 
+          src={mascotPath} 
+          alt="CampusRun Mascot" 
+          style={{ 
+            width: s.img, 
+            height: 'auto',
+            objectFit: 'contain'
+          }} 
+        />
       </div>
-      <span className={`font-display font-bold ${s.text} text-foreground`}>
-        Campus<span className="text-primary">Run</span>
+      <span
+        style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontWeight: 'bold',
+          fontSize: s.text,
+          color: light ? '#FFFFFF' : '#0F1C2E',
+          letterSpacing: '0.05em',
+        }}
+      >
+        Campus<span style={{ color: '#F97316' }}>Run</span>
       </span>
     </div>
   );

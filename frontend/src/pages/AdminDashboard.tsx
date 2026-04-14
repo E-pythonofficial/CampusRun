@@ -25,9 +25,9 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
   // Filter for pending dispatchers based on updated types
-  const pendingDispatchers = users.filter(
-    u => u.role === 'dispatcher' && u.dispatcherStatus === 'pending'
-  );
+  // const pendingDispatchers = users.filter(
+  //   u => u.role === 'dispatcher' && u.dispatcherStatus === 'pending'
+  // );
 
   const allDeliveries: Delivery[] = mockDeliveries;
 

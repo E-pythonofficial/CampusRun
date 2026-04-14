@@ -15,12 +15,15 @@ import {
   Trash2,
   Camera,
   Shield,
-  Bell,
   Fingerprint,
   CreditCard,
   Sun,
   Moon,
-  CheckCircle2
+  CheckCircle2,
+  Briefcase,
+  Clock,
+  School,
+  MapPin
 } from 'lucide-react';
 
 const Profile = () => {
@@ -34,7 +37,6 @@ const Profile = () => {
   const [mounted, setMounted] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  // Theme Configuration
   const isDark = theme === 'dark';
 
   const themeClass = {
@@ -49,27 +51,38 @@ const Profile = () => {
   };
 
   const [formData, setFormData] = useState({
-    fullName: user?.fullName || 'Eniola Oluwaseyifunmi',
-    username: user?.username || 'enny_sax',
-    email: user?.email || 'eniola@bowen.edu.ng',
-    matricNumber: user?.matricNumber || 'CSC/2021/001'
+    fullName: '',
+    username: '',
+    email: '',
+    matricNumber: '',
+    department: '',
+    hostel: '',
+    college: ''
   });
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    if (user) {
+      setFormData({
+        fullName: user.fullName || '',
+        username: user.username || user.fullName?.split(' ')[0].toLowerCase() || 'user',
+        email: user.email || '',
+        // Logic to pick the right ID based on user type
+        matricNumber: user.userType === 'STAFF' ? (user.staffId || 'N/A') : (user.matricNumber || 'N/A'),
+        department: user.department || 'N/A',
+        hostel: user.hostel || 'N/A',
+        college: user.college || 'N/A'
+      });
+    }
+  }, [user]);
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click();
-  };
+  const handleImageClick = () => fileInputRef.current?.click();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setProfileImage(reader.result as string);
-      };
+      reader.onloadend = () => setProfileImage(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -79,17 +92,24 @@ const Profile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    updateUserProfile({
-      fullName: formData.fullName,
-      username: formData.username,
-      email: formData.email
-    });
-    setIsEditing(false);
-    
-    // Trigger Success Toast
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+  const handleSave = async () => {
+    try {
+        await updateUserProfile({
+            fullName: formData.fullName,
+            username: formData.username,
+            email: formData.email
+        });
+        setIsEditing(false);
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+        console.error("Failed to update profile", error);
+    }
+  };
+
+  const handleLogout = () => {
+    logout(); 
+    navigate('/login'); 
   };
 
   if (!mounted) return null;
@@ -97,7 +117,6 @@ const Profile = () => {
   return (
     <div className={`min-h-screen ${themeClass.bg} ${themeClass.text} pb-10 transition-colors duration-500 relative`}>
       
-      {/* SUCCESS TOAST */}
       <AnimatePresence>
         {showToast && (
           <motion.div
@@ -137,60 +156,38 @@ const Profile = () => {
       </div>
 
       <div className="max-w-md mx-auto px-6 mt-8 space-y-8">
-        {/* AVATAR SECTION */}
+        {/* AVATAR */}
         <div className="flex flex-col items-center">
           <div className="relative group">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleImageChange} 
-              accept="image/*" 
-              className="hidden" 
-            />
-
+            <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
             <div className="w-28 h-28 rounded-[2rem] bg-gradient-to-br from-primary to-orange-600 p-[2px] shadow-2xl shadow-primary/20">
               <div className={`w-full h-full rounded-[1.9rem] ${themeClass.card} flex items-center justify-center overflow-hidden`}>
                 {profileImage ? (
                   <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-3xl font-black text-primary/40 italic">
-                    {formData.fullName.charAt(0)}
+                    {formData.fullName?.charAt(0) || 'U'}
                   </span>
                 )}
               </div>
             </div>
-
-            <button 
-              onClick={handleImageClick}
-              className={`absolute bottom-0 right-0 p-2 bg-primary rounded-xl border-4 ${isDark ? 'border-[#020617]' : 'border-[#F8FAFC]'} text-white hover:scale-110 active:scale-95 transition-all shadow-lg`}
-            >
+            <button onClick={handleImageClick} className={`absolute bottom-0 right-0 p-2 bg-primary rounded-xl border-4 ${isDark ? 'border-[#020617]' : 'border-[#F8FAFC]'} text-white hover:scale-110 active:scale-95 transition-all shadow-lg`}>
               <Camera size={16} />
             </button>
           </div>
-
           <h2 className={`mt-4 text-xl font-bold ${themeClass.text}`}>{formData.fullName}</h2>
-          <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 px-3 py-1 rounded-full mt-1">
-            Verified Requester
+          <p className="text-primary text-[10px] font-black uppercase tracking-[0.2em] bg-primary/10 px-3 py-1 rounded-full mt-2">
+            {user?.role || 'Verified User'}
           </p>
         </div>
 
-        {/* USER FORM */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
-        >
+        {/* FORM */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
           <div className="space-y-2">
             <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Full Name</Label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={18} />
-              <Input
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className={`${themeClass.input} h-14 pl-12 rounded-2xl focus:border-primary transition-all`}
-              />
+              <Input name="fullName" value={formData.fullName} onChange={handleInputChange} disabled={!isEditing} className={`${themeClass.input} h-14 pl-12 rounded-2xl focus:border-primary transition-all`} />
             </div>
           </div>
 
@@ -198,13 +195,7 @@ const Profile = () => {
             <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Username</Label>
             <div className="relative">
               <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={18} />
-              <Input
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className={`${themeClass.input} h-14 pl-12 rounded-2xl focus:border-primary transition-all`}
-              />
+              <Input name="username" value={formData.username} onChange={handleInputChange} disabled={!isEditing} className={`${themeClass.input} h-14 pl-12 rounded-2xl focus:border-primary transition-all`} />
             </div>
           </div>
 
@@ -212,76 +203,70 @@ const Profile = () => {
             <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Email Address</Label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" size={18} />
-              <Input
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                disabled={!isEditing}
-                className={`${themeClass.input} h-14 pl-12 rounded-2xl focus:border-primary transition-all`}
-              />
+              <Input name="email" value={formData.email} onChange={handleInputChange} disabled={!isEditing} className={`${themeClass.input} h-14 pl-12 rounded-2xl focus:border-primary transition-all`} />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Matric Number</Label>
-            <div className="relative">
-              <CreditCard className={`absolute left-4 top-1/2 -translate-y-1/2 ${isDark ? 'text-white/20' : 'text-slate-300'}`} size={18} />
-              <Input
-                value={formData.matricNumber}
-                disabled
-                className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`}
-              />
+          {/* ACADEMIC/STAFF DETAILS (READ ONLY) */}
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>
+                {user?.userType === 'STAFF' ? 'Staff ID' : 'Matric Number'}
+              </Label>
+              <div className="relative">
+                {user?.userType === 'STAFF' ? <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} /> : <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />}
+                <Input value={formData.matricNumber} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`} />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+               <div className="space-y-2">
+                  <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Department</Label>
+                  <div className="relative">
+                    <School className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                    <Input value={formData.department} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`} />
+                  </div>
+               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+               <div className="space-y-2">
+                  <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Location/Hostel</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
+                    <Input value={formData.hostel} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-10 rounded-2xl cursor-not-allowed text-xs`} />
+                  </div>
+               </div>
+               <div className="space-y-2">
+                  <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>College</Label>
+                  <Input value={formData.college} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 rounded-2xl cursor-not-allowed text-xs`} />
+               </div>
             </div>
           </div>
 
           <Button
             variant="outline"
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
-            className={`w-full h-14 rounded-2xl font-bold text-xs tracking-widest uppercase transition-all shadow-sm ${
-              isEditing
-                ? 'bg-primary text-white border-none hover:bg-orange-600'
-                : `${isDark ? 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`
+            className={`w-full h-14 rounded-2xl font-bold text-xs tracking-widest uppercase transition-all shadow-sm mt-4 ${
+              isEditing ? 'bg-primary text-white border-none hover:bg-orange-600' : `${isDark ? 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`
             }`}
           >
-            {isEditing ? 'Save Changes' : 'Edit Profile Info'}
+            {isEditing ? 'Save Changes' : 'Edit Basic Info'}
           </Button>
         </motion.div>
 
-        {/* LINKS */}
+        {/* MANAGEMENT LINKS */}
         <div className="space-y-3 pt-4">
-          <p className={`${themeClass.subText} text-[10px] font-black uppercase tracking-widest ml-1`}>Management</p>
-          <ProfileLink 
-            icon={History} 
-            label="My Requests History" 
-            onClick={() => navigate('/my-requests')} 
-            themeClass={themeClass}
-          />
-          <ProfileLink 
-            icon={Lock} 
-            label="Change Password" 
-            onClick={() => navigate('/forgot-password')} 
-            themeClass={themeClass}
-          />
-          <ProfileLink 
-            icon={Bell} 
-            label="Notification Settings" 
-            onClick={() => navigate('/notification-settings')} 
-            themeClass={themeClass}
-          />
-          <ProfileLink 
-            icon={Shield} 
-            label="Privacy & Security" 
-            onClick={() => navigate('/privacy')} 
-            themeClass={themeClass}
-          />
+          <p className={`${themeClass.subText} text-[10px] font-black uppercase tracking-widest ml-1`}>Account Management</p>
+          <ProfileLink icon={History} label="My Requests History" onClick={() => navigate('/my-requests')} themeClass={themeClass} />
+          <ProfileLink icon={Clock} label="Login Activity" onClick={() => navigate('/login-history')} themeClass={themeClass} />
+          <ProfileLink icon={Lock} label="Change Password" onClick={() => navigate('/forgot-password')} themeClass={themeClass} />
+          <ProfileLink icon={Shield} label="Privacy & Security" onClick={() => navigate('/privacysettings')} themeClass={themeClass} />
         </div>
 
-        {/* DANGER ZONE */}
+        {/* LOGOUT / DANGER */}
         <div className={`pt-8 border-t ${themeClass.border} space-y-4`}>
-          <button
-            onClick={() => navigate('/delete-account')}
-            className={`w-full flex items-center justify-between p-5 rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-all group`}
-          >
+          <button onClick={() => navigate('/delete-account')} className="w-full flex items-center justify-between p-5 rounded-2xl bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 transition-all group">
             <div className="flex items-center gap-3 text-red-500">
               <Trash2 size={20} />
               <span className="font-bold text-xs uppercase tracking-widest">Delete Account</span>
@@ -289,14 +274,7 @@ const Profile = () => {
             <ChevronRight size={18} className="text-red-500/40 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <Button
-            onClick={logout}
-            className={`w-full h-14 rounded-2xl font-black tracking-widest uppercase transition-all ${
-              isDark 
-                ? 'bg-white/5 hover:bg-red-500 text-white/40 hover:text-white' 
-                : 'bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white'
-            }`}
-          >
+          <Button onClick={handleLogout} className={`w-full h-14 rounded-2xl font-black tracking-widest uppercase transition-all ${isDark ? 'bg-white/5 hover:bg-red-500 text-white/40 hover:text-white' : 'bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white'}`}>
             Sign Out
           </Button>
         </div>
@@ -305,18 +283,13 @@ const Profile = () => {
   );
 };
 
-const ProfileLink = ({ icon: Icon, label, onClick, themeClass }: { icon: any; label: string; onClick: () => void; themeClass: any }) => (
-  <button
-    onClick={onClick}
-    className={`w-full flex items-center justify-between p-5 rounded-2xl ${themeClass.linkBg} border shadow-sm hover:border-primary/30 hover:bg-primary/5 transition-all group`}
-  >
+const ProfileLink = ({ icon: Icon, label, onClick, themeClass }: any) => (
+  <button onClick={onClick} className={`w-full flex items-center justify-between p-5 rounded-2xl ${themeClass.linkBg} border shadow-sm hover:border-primary/30 hover:bg-primary/5 transition-all group`}>
     <div className="flex items-center gap-4">
       <div className={`p-2 rounded-xl ${themeClass.bg} text-primary group-hover:bg-primary group-hover:text-white transition-colors`}>
         <Icon size={18} />
       </div>
-      <span className={`font-bold text-[11px] uppercase tracking-widest ${themeClass.subText} group-hover:text-primary transition-colors`}>
-        {label}
-      </span>
+      <span className={`font-bold text-[11px] uppercase tracking-widest ${themeClass.subText} group-hover:text-primary transition-colors`}>{label}</span>
     </div>
     <ChevronRight size={16} className={`${themeClass.subText} group-hover:text-primary transition-colors`} />
   </button>

@@ -14,6 +14,7 @@ const Landing = () => {
     setIsRunning(true);
     setTimeout(() => {
       navigate('/register');
+      
     }, 800);
   };
 
@@ -54,7 +55,7 @@ const Landing = () => {
       {/* --- NAV --- */}
       <nav className="fixed top-0 w-full z-[100] border-b border-white/5 bg-[#050914]/80 backdrop-blur-lg">
         <div className="container h-20 flex items-center justify-between relative z-[110]">
-          <Logo size="md" />
+          <Logo size="md" light />
           
           <div className="flex items-center gap-4">
             <div className="hidden md:flex gap-4">
@@ -233,7 +234,7 @@ const Landing = () => {
               viewport={{ once: true }}
               className="flex flex-wrap justify-center gap-6 mt-12 text-sm text-muted-foreground border-y border-white/5 py-6 font-playful"
             >
-              <span className="flex items-center gap-2"><CheckCircle size={16} className="text-primary"/> Max ₦20,000</span>
+              {/* <span className="flex items-center gap-2"><CheckCircle size={16} className="text-primary"/> </span> */}
               <span className="flex items-center gap-2"><CheckCircle size={16} className="text-primary"/> 7:00 AM - 7:30 PM</span>
               <span className="flex items-center gap-2"><CheckCircle size={16} className="text-primary"/> Verified Students Only</span>
             </motion.div>

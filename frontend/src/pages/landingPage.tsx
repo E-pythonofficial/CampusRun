@@ -5,12 +5,13 @@
 
 import Logo from '@/components/Logo';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { href, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, Variants, AnimatePresence } from 'framer-motion';
 import {
   ArrowRight, ShieldCheck, Clock, Camera,
   CheckCircle2, Phone, MessageCircle,
-  Instagram, Twitter, Menu, X, Zap, Star
+  Instagram, Twitter, Menu, X, Zap, Star,
+  Accessibility
 } from 'lucide-react';
 
 // ─── TOKENS ──────────────────────────────────────────────────────────────────
@@ -144,9 +145,10 @@ export default function LandingPage() {
   ];
 
   const team = [
-    { name: 'Sarah',    role: 'Support Lead I',          phone: '2348039867195' },
-    { name: 'David',    role: 'Support Lead II',  phone: '2348081784740' },
-    { name: 'Blessing', role: 'Support Lead III',        phone: '2348039867195' },
+    { name: 'Korede',    role: 'Support Lead I',          phone: '2347079955201' },
+    { name: 'Aitee',    role: 'Support Lead II',  phone: '2348060205010' },
+    { name: 'David', role: 'Support Lead III',        phone: '2348039867195' },
+    { name: 'Patrick', role: 'Support Lead IV',        phone: '2348039867195' }
   ];
 
   return (
@@ -172,11 +174,11 @@ export default function LandingPage() {
       >
         <div className="max-w-[1400px] mx-auto px-6 md:px-10 h-20 flex items-center justify-between relative">
           <a href="#" className="font-display text-3xl tracking-wide relative z-[160]" style={{ color: C.orange }}>
-            <Logo size="md" />
+            <Logo size="md" light/>
           </a>
 
           {/* Desktop Links */}
-          <div className="hidden lg:flex gap-10 text-[11px] font-bold uppercase tracking-[0.2em]">
+          <div className="hidden lg:flex gap-10 text-[13px] font-bold uppercase tracking-[0.2em]">
             {navLinks.map(l => (
               <a key={l.href} href={l.href}
                 className="transition-colors hover:opacity-60"
@@ -187,9 +189,9 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-3 relative z-[160]">
             <button
-              className="hidden lg:block px-8 py-3 rounded-full text-[11px] font-bold uppercase tracking-widest text-white transition-all hover:opacity-90"
+              className="hidden lg:block px-8 py-3 rounded-full text-[13px] font-bold uppercase tracking-widest text-white transition-all hover:opacity-90"
               style={{ background: C.orange }}
-              onClick={() => navigate('/dispatcher')}>
+              onClick={() => navigate('/register')}>
               Sign Up Free
             </button>
             
@@ -232,7 +234,7 @@ export default function LandingPage() {
                       // Small delay ensures the click registers before the menu vanishes
                       setTimeout(() => setMobileOpen(false), 100);
                     }}
-                    className="text-2xl font-bold uppercase tracking-widest py-4 px-2 block transition-all active:bg-white/5 relative z-[210] pointer-events-auto"
+                    className="text-xl font-bold tracking-widest py-4 px-2 block transition-all active:bg-white/5 relative z-[210] pointer-events-auto"
                     style={{ color: C.cream }}
                   >
                     {l.label}
@@ -240,7 +242,7 @@ export default function LandingPage() {
                 ))}
                 
                 <button 
-                  className="w-full py-5 rounded-2xl text-base font-bold uppercase tracking-widest text-white mt-4 shadow-xl active:scale-[0.98] transition-transform relative z-[210] pointer-events-auto"
+                  className="w-full py-5 rounded-2xl text-base font-bold tracking-widest text-white mt-4 shadow-xl active:scale-[0.98] transition-transform relative z-[210] pointer-events-auto"
                   style={{ background: C.orange }}
                   onClick={() => {
                     setMobileOpen(false);
@@ -269,11 +271,11 @@ export default function LandingPage() {
 
         <motion.div variants={stagger} initial="hidden" animate="visible">
         {/* Tag */}
-        <motion.div variants={fadeUp}
+        {/* <motion.div variants={fadeUp}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-6"
             style={{ background: C.orangeLight, color: C.orange }}>
             <Zap size={12} fill="currentColor" /> Student-Powered Campus Delivery
-        </motion.div>
+        </motion.div> */}
 
       {/* ↓ REDUCED font size here */}
       <motion.h1 variants={fadeUp}
@@ -298,7 +300,7 @@ export default function LandingPage() {
         <button className="text-white px-9 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm transition-all hover:opacity-80"
           style={{ background: C.navy }}
           onClick={() => navigate('/landing')}>
-          See How It Works
+          How It Works
         </button>
       </motion.div>
 
@@ -311,7 +313,7 @@ export default function LandingPage() {
           ))}
         </div>
         <div className="text-sm font-medium" style={{ color: C.muted }}>
-          <span className="font-bold" style={{ color: C.text }}>100+ students</span> active
+          <span className="font-bold" style={{ color: C.text }}>Students</span> active
         </div>
       </motion.div>
     </motion.div>
@@ -487,14 +489,15 @@ export default function LandingPage() {
               </motion.p>
               <motion.h2 variants={fadeUp} className="font-display leading-none tracking-wide"
                 style={{ fontSize: 'clamp(5rem,15vw,11rem)', color: C.navy }}>
-                ₦800
+                ₦500
               </motion.h2>
               <motion.div variants={fadeUp} className="font-display text-4xl tracking-wide mb-8" style={{ color: C.orange }}>
-                FLAT. ALWAYS.
+                AT LEAST.
               </motion.div>
               <motion.p variants={fadeUp} className="text-lg font-medium leading-relaxed max-w-md mb-10" style={{ color: C.muted }}>
-                No surge pricing. No hidden fees. If your item exceeds ₦15,000 which needs extra care, we add a service charge of {' '}
-                <span className="font-bold" style={{ color: C.navy }}>₦500</span>, still the cheapest protection on campus.
+                 Why pay a flat rate for a short trip? Our pricing now scales with your journey, starting as low as ₦500. No surge pricing, 
+                no hidden fees, and no extra charges for high-value items 
+                <span className="font-bold" style={{ color: C.navy }}> Just Simple, Honest Delivery</span>, still the cheapest protection on campus.
               </motion.p>
               <motion.button variants={fadeUp}
                 className="text-white px-12 py-5 rounded-2xl font-bold uppercase tracking-widest text-sm flex items-center gap-3 transition-all hover:opacity-90 active:scale-95"
@@ -625,7 +628,7 @@ export default function LandingPage() {
               </h2>
             </motion.div>
 
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {team.map((rep, i) => (
                 <motion.div key={i} variants={fadeUp}
                   className="rounded-[3rem] p-10 border-2 text-center transition-all"
@@ -699,9 +702,14 @@ export default function LandingPage() {
             </div>
 
             {[
-              { title: 'Company', links: ['About Us', 'Our Offerings', 'Newsroom', 'Careers'] },
+              { title: 'Company', links: ['About Us', 'Our Offerings', 'Updates'] },
               { title: 'Product',  links: ['Requester App', 'Runner App', 'Pricing', 'Safety'] },
-              { title: 'Legal',    links: ['Privacy Policy', 'Terms of Service', 'Accessibility', 'Cookies'] },
+
+              { title: 'Legal',
+                links: [
+                  
+                ]
+              },
             ].map((col, i) => ( 
               <div key={i}>
                 <h5 className="font-bold uppercase tracking-[0.2em] text-xs mb-8 underline" style={{ color: '#dde3ed' }}>{col.title}</h5>

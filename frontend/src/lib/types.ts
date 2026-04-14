@@ -1,4 +1,7 @@
-export type UserRole = 'requester' | 'dispatcher' | 'admin';
+export type UserRole = 'REQUESTER' | 'DISPATCHER' | 'ADMIN';
+
+// Matching your backend fork for Requesters
+export type UserType = 'STUDENT' | 'STAFF' | null;
 
 export type DeliveryStatus =
   | 'CREATED'
@@ -13,18 +16,33 @@ export type DeliveryStatus =
   | 'EXPIRED'
   | 'DISPUTED';
 
-export type DispatcherApprovalStatus = 'pending' | 'approved' | 'rejected';
-
 export interface User {
   id: string;
-  fullName: string;
-  phone: string;
-  matricNumber: string;
-  department: string;
+  fullName: string;      // Changed to camelCase to match typical Prisma/JS standards
+  email: string;
   role: UserRole;
-  dispatcherStatus?: DispatcherApprovalStatus;
-  email?: string;
+  userType: UserType;
+  isVerified: boolean;    // ADDED: Crucial for the login gate logic
+  
+  // Requester/Student Specific
+  matricNumber?: string;
+  hostel?: string;
+  college?: string;
+  department?: string;
+  
+  // Staff Specific
+  staffId?: string;       // Matches staffIdUsername in some of your earlier drafts
+
+  // Dispatcher Specific
+  bio?: string;
+  idCardUrl?: string;     // Path to the file in /uploads
+  selfieUrl?: string;     // Path to the file in /uploads
+  isApproved: boolean;    // The critical gatekeeper for Dispatchers
+  
+  // General Profile
+  phone?: string;
   username?: string;
+  createdAt?: string | Date;
 }
 
 export interface Delivery {
@@ -35,7 +53,7 @@ export interface Delivery {
   dispatcherName?: string;
   itemDescription: string;
   itemValue: number;
-  fee: number; // Added for UI display
+  fee: number;
   pickupLocation: string;
   dropoffLocation: string;
   pin: string;
@@ -54,7 +72,7 @@ export interface DispatcherStats {
   strikes: number;
   averageRating: number;
   reliability: number;
-  totalEarnings: number; // Added for the Wallet section
+  totalEarnings: number;
 }
 
 export interface LeaderboardEntry {

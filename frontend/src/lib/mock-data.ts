@@ -1,59 +1,70 @@
 import { Delivery, DispatcherStats, LeaderboardEntry, User } from './types';
 
-// Updated to export mockUsers as an array to support the Admin Dashboard
+// Updated to match the new User interface (fullName, isVerified, DISPATCHER role)
 export const mockUsers: User[] = [
   {
     id: '1',
     fullName: 'Adebayo Oluwaseun',
     phone: '08012345678',
+    email: 'johnnydrille28@gmail.com',
     matricNumber: 'CSC/2021/001',
     department: 'Computer Science',
-    role: 'dispatcher',
-    dispatcherStatus: 'approved',
-    email: 'johnnydrille28@gmail.com'
+    role: 'DISPATCHER', // Updated role name
+    userType: 'STUDENT',
+    isApproved: true,
+    isVerified: true,   // Added verification status
   },
   {
     id: '2',
     fullName: 'Chinwe Okafor',
     phone: '08022223333',
+    email: 'chinwe@campusrun.com',
     matricNumber: 'BUS/2022/120',
     department: 'Business Admin',
-    role: 'dispatcher',
-    dispatcherStatus: 'approved',
-    email: 'chinwe@campusrun.com'
+    role: 'DISPATCHER',
+    userType: 'STUDENT',
+    isApproved: true,
+    isVerified: true,
   },
   {
     id: '3',
     fullName: 'Emeka Nwosu',
     phone: '08044445555',
+    email: 'emeka@student.edu',
     matricNumber: 'ENG/2021/088',
     department: 'Mechanical Engineering',
-    role: 'dispatcher',
-    dispatcherStatus: 'approved',
-    email: 'emeka@student.edu'
+    role: 'DISPATCHER',
+    userType: 'STUDENT',
+    isApproved: true,
+    isVerified: true,
   },
   {
     id: '4',
     fullName: 'Fatima Bello',
     phone: '07011119999',
+    email: 'fatima@student.edu',
     matricNumber: 'LAW/2023/042',
     department: 'Law',
-    role: 'dispatcher',
-    email: 'fatima@student.edu'
+    role: 'REQUESTER',
+    userType: 'STUDENT',
+    isApproved: true,
+    isVerified: true,
   },
   {
     id: '5',
     fullName: 'Kola Abiola',
     phone: '09012344321',
+    email: 'kola@student.edu',
     matricNumber: 'MED/2020/015',
     department: 'Medicine',
-    role: 'dispatcher',
-    dispatcherStatus: 'pending', // This will now correctly appear in the Approval Queue
-    email: 'kola@student.edu'
+    role: 'DISPATCHER',
+    userType: 'STUDENT',
+    isApproved: false, // Pending Dispatcher
+    isVerified: true,
   }
 ];
 
-// Keep single mockUser export for parts of the app that expect only the current user
+// Single mockUser for parts of the app that expect the current logged-in user
 export const mockUser: User = mockUsers[0];
 
 export const mockDeliveries: Delivery[] = [
@@ -130,7 +141,7 @@ export const mockDispatcherStats: DispatcherStats = {
   strikes: 2,
   averageRating: 4.7,
   reliability: 83,
-  totalEarnings: 33600, // Fixed the 'does not exist' error in DispatcherDashboard
+  totalEarnings: 33600,
 };
 
 export const mockLeaderboard: LeaderboardEntry[] = [
