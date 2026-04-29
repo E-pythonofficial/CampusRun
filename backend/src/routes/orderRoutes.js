@@ -1,11 +1,12 @@
-const express = require('express');
+// BACKEND: routes/orderRoutes.js
+import express from 'express';
+import { createOrder } from '../controllers/orderController.js';
+import { verifyPayment } from '../controllers/paymentController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
-const { initializePayment, verifyPayment } = require('../controllers/paymentController');
 
-// Route to start payment
-router.post('/initialize', initializePayment);
+router.post('/create', protect, createOrder);
+router.get('/verify/:reference', protect, verifyPayment);
 
-// Route for the frontend to check if payment was successful
-router.get('/verify/:reference', verifyPayment);
-
-module.exports = router;
+export default router;  // ← ES Module export, not module.exports

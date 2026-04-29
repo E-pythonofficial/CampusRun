@@ -45,16 +45,34 @@ const queryClient = new QueryClient();
  * PROTECTED ROUTE COMPONENT
  * Fixed: Added normalization to lowercase to ensure 'REQUESTER' matches 'requester'
  */
-const ProtectedRoute = ({ children, allowedRole }: { children: React.ReactNode, allowedRole: string }) => {
-  const { user, isAuthenticated } = useAuth();
-  
-  if (!isAuthenticated) return <Navigate replace to="/login" />;
-  
-  // Case-insensitive role check
+const ProtectedRoute = ({ 
+  children, 
+  allowedRole 
+}: { 
+  children: React.ReactNode, 
+  allowedRole: string 
+}) => {
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  // ── Wait for localStorage to finish loading ───────────────
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // ── Not logged in ─────────────────────────────────────────
+  if (!isAuthenticated) {
+    return <Navigate replace to="/login" />;
+  }
+
+  // ── Wrong role ────────────────────────────────────────────
   if (user?.role?.toLowerCase() !== allowedRole.toLowerCase()) {
     return <Navigate replace to="/" />;
   }
-  
+
   return <>{children}</>;
 };
 

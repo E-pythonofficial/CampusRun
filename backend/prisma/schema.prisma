@@ -22,11 +22,22 @@ enum UserType {
 
 enum DeliveryStatus {
   PENDING
+  PENDING_PAYMENT
   PAID
   ACCEPTED
   PICKED_UP
   DELIVERED
+  COMPLETED
   CANCELLED
+}
+
+enum ApplicationStatus {
+  NOT_APPLIED        //regular students
+  PENDING_REVIEW      //email verified, awiting admin Approval
+  INTERVIEW_SCHEDULED  //admin sent google meet link
+  APPROVED              //passed interview, full access to dashboard
+  REJECTED             //rejected at the review stage
+  REJECTED_POST_INTERVIEW  //rejected after interview
 }
 
 // --- MODELS ---
@@ -47,25 +58,44 @@ model User {
   college           String?   @db.VarChar(100)
   hostel            String?   @db.VarChar(100)
   
-  // --- DISPATCHER SPECIFIC INFO ---
-  bio               String?   @db.Text         // "Why do you want to join?"
-  idCardUrl         String?   @db.VarChar(500) // Path to uploaded ID card image
-  selfieUrl         String?   @db.VarChar(500) // Path to uploaded verification selfie
+  // Dispatcher Info
+  idCardUrl         String?   @db.VarChar(500)
+  selfieUrl         String?   @db.VarChar(500)
+  applicationStatus  ApplicationStatus @default(NOT_APPLIED)
+  reasonToJoin      String?   @db.Text
+  interviewLink     String?   @db.VarChar(500)
+  interviewScheduledAt   DateTime?
+  rejectionReason   String?   @db.Text
+  applicationSubmittedAt  DateTime?
+  approvedAt  DateTime?  // when admin approved them
+
+  //AI Verification RESULTS
+  aiIdCardReal      Boolean?    //result of AI Id card check
+  aiFaceMatchScore  Float?      //0.0 - 1.0 face match confidence
+  aiVerificationFlag  Boolean?  //true = flagged for review
   
   // Auth & Verification
-  isVerified        Boolean   @default(false)  // Email verification status
+  isVerified        Boolean   @default(false)
   verificationToken String?   @unique @db.VarChar(255)
-  tokenExpires      DateTime? 
+  tokenExpires      DateTime?
   resetToken        String?   @unique @db.VarChar(255)
-  resetTokenExpires DateTime? 
-  
-  // Admin Approval: Requesters can be true by default, Dispatchers start as false
-  isApproved        Boolean   @default(false) 
+  resetTokenExpires DateTime?
+  isApproved        Boolean   @default(false)
+
+  // Earnings (dispatcher)
+  weeklyBalance     Decimal   @default(0) @db.Decimal(10, 2)
+  totalEarned       Decimal   @default(0) @db.Decimal(10, 2)
+  lastPayoutAt  DateTime?
+
+  // For REQUESTER users they stay null/false always
+  isSuspended           Boolean   @default(false)
+  suspendedUntil        DateTime?
+  suspensionReason      String?   @db.Text
 
   // Relations
   deliveries        Delivery[]    @relation("Requester")
   runs              Delivery[]    @relation("Runner")
-  loginRecords      LoginRecord[] 
+  loginRecords      LoginRecord[]
   
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -85,40 +115,45 @@ model LoginRecord {
   @@index([userId])
 }
 
+
 model Delivery {
   id             String         @id @default(uuid())
   item           String         @db.VarChar(255)
   
-  // Location Data
+  handshakePin  String?         @db.VarChar(10) // 4-digit PIN for delivery confirmation
+  // Location
   pickupAddress  String         @db.Text
   pickupLat      Float
   pickupLng      Float
-  
   dropoffAddress String         @db.Text
   dropoffLat     Float
   dropoffLng     Float
 
-  // Pricing & Metrics
+  // Pricing
   distanceMeters Int
   totalPrice     Decimal        @db.Decimal(10, 2)
-  
-  // Tracking
+  runnerGets     Decimal        @db.Decimal(10, 2)
+  companyRevenue Decimal        @db.Decimal(10, 2)
+
+
+  // Payment
   status         DeliveryStatus @default(PENDING)
   paystackRef    String?        @unique @db.VarChar(255)
   
   // Relations
   requesterId    String
   requester      User           @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
-  
   runnerId       String?
   runner         User?          @relation("Runner", fields: [runnerId], references: [id], onDelete: SetNull)
   
+  deliveredAt    DateTime?      // timestamp when delivery was confirmed
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
   @@index([status])
   @@index([requesterId])
   @@index([runnerId])
+  @@index([paystackRef])
 }
 
 model Otp {

@@ -1,5 +1,5 @@
 import express from 'express';
-import upload from '../lib/cloudinary.js';
+import { uploadDispatcherDocs } from '../lib/cloudinary.js';
 // import register from '../controllers/authController.js';
 // Added the new controller functions to the import list
 import { 
@@ -20,10 +20,7 @@ const router = express.Router();
  * @route   POST /api/auth/register
  */
 router.post('/register', 
-  upload.fields([
-    { name: 'idCard', maxCount: 1 },
-    {name: 'selfie', maxCount: 1 }
-  ]),
+  uploadDispatcherDocs,
   register); 
 
 /**

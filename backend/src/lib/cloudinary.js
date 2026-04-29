@@ -3,23 +3,30 @@ import { CloudinaryStorage } from 'multer-storage-cloudinary';
 import multer from 'multer';
 import dotenv from 'dotenv';
 
-// 1. Setup your API keys (Should be in your .env file)
+dotenv.config();
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
+  api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// 2. Setup the Storage Engine
+// ── Single storage config that handles both idCard and selfie ─────────────────
 const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'Dynamic folders', // Folder name in Cloudinary
-    allowed_formats: ['jpg', 'png', 'jpeg'],
-    transformation: [{ width: 1000, height: 1000, crop: 'limit' }] // Optional: resize
-  },
+  cloudinary,
+  params: (req, file) => ({
+    folder: file.fieldname === 'idCard'
+      ? 'campusrun/id-cards'
+      : 'campusrun/selfies',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 1000, quality: 'auto' }],
+  }),
 });
 
-export const upload = multer({ storage: storage });
+// ── Upload both files in one request ──────────────────────────────────────────
+export const uploadDispatcherDocs = multer({ storage }).fields([
+  { name: 'idCard', maxCount: 1 },
+  { name: 'selfie', maxCount: 1 },
+]);
 
-export default upload;
+export { cloudinary };

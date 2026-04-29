@@ -1,26 +1,27 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole } from './types';
-import api from './api'; 
+import api from './api';
 
 type Theme = 'dark' | 'light';
 
 interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  theme: Theme;
-  toggleTheme: () => void;
-  login: (email: string, password: string) => Promise<User>;
-  // dispatcherlogin: (id: string, password: string) => Promise<User>;
-  logout: () => void;
-  switchRole: (role: UserRole) => void;
+  user:              User | null;
+  isAuthenticated:   boolean;
+  isLoading:         boolean; // ← ADD THIS
+  theme:             Theme;
+  toggleTheme:       () => void;
+  login:             (email: string, password: string) => Promise<User>;
+  logout:            () => void;
+  switchRole:        (role: UserRole) => void;
   updateUserProfile: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  
+  const [user,      setUser]      = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // ← starts true
+
   const [theme, setTheme] = useState<Theme>(() => {
     const savedTheme = localStorage.getItem('campusrun_theme');
     if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme;
@@ -28,37 +29,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   });
 
   useEffect(() => {
+    // ── Load user from localStorage on mount ──────────────────
     const savedUser = localStorage.getItem('campusrun_session');
-    const token = localStorage.getItem('campusrun_token');
+    const token     = localStorage.getItem('campusrun_token');
 
     if (savedUser && token) {
       try {
         setUser(JSON.parse(savedUser));
       } catch {
-        logout();
+        localStorage.removeItem('campusrun_session');
+        localStorage.removeItem('campusrun_token');
       }
     }
 
+    setIsLoading(false); // ← done loading, now ProtectedRoute can check
+
+    // ── Theme ─────────────────────────────────────────────────
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
     localStorage.setItem('campusrun_theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
   const login = async (email: string, password: string): Promise<User> => {
     try {
       const response = await api.post('/auth/login', { email, password });
-      const data = response.data;
-
-      const rawUser = data.user || data; 
+      const data     = response.data;
+      const rawUser  = data.user || data;
 
       const loggedInUser: User = {
         ...rawUser,
-        isVerified: !!rawUser.isVerified, 
+        isVerified: !!rawUser.isVerified,
         isApproved: !!rawUser.isApproved,
-        fullName: rawUser.fullName || rawUser.fullname || 'User'
+        fullName:   rawUser.fullName || rawUser.fullname || 'User',
       };
 
       setUser(loggedInUser);
@@ -68,7 +73,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return loggedInUser;
     } catch (err: any) {
       const message = err.response?.data?.message || 'Login failed';
-      const error = new Error(message);
+      const error   = new Error(message);
       (error as any).status = err.response?.status;
       throw error;
     }
@@ -88,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const updateUserProfile = (updates: Partial<User>) => {
-    setUser((prev) => {
+    setUser(prev => {
       if (!prev) return null;
       const updatedUser = { ...prev, ...updates };
       localStorage.setItem('campusrun_session', JSON.stringify(updatedUser));
@@ -97,9 +102,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, theme, toggleTheme, login,  logout, switchRole, updateUserProfile }}
-    >
+    <AuthContext.Provider value={{
+      user,
+      isAuthenticated: !!user,
+      isLoading,        // ← expose it
+      theme,
+      toggleTheme,
+      login,
+      logout,
+      switchRole,
+      updateUserProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   );
