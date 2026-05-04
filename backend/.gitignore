@@ -8,4 +8,4 @@ backend/.env
 .env.production
 
 /src/generated/prisma
-".env" 
+.env
