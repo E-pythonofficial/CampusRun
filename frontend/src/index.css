@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* --- LIGHT MODE CRAYONS (Default) --- */
+    --background: 0 0% 100%; /* Pure White */
+    --foreground: 216 60% 11%; /* Navy text */
+    --card: 0 0% 98%;
+    --card-foreground: 216 60% 11%;
+    --border: 214.3 31.8% 91.4%;
+    
+    /* Font Mapping stays the same */
+    --font-major: "Roboto Serif", serif; 
+    --font-playful: 'Love Ya Like A Sister', cursive;
+    --font-body: 'Inter', sans-serif;
+
+    /* Design System Colors */
+    --primary: 26 100% 50%; 
+    --radius: 0.75rem;
+  }
+
+  /* --- DARK MODE CRAYONS (The "Moon Suit") --- */
+  /* This activates when the 'dark' tag is added by your App.tsx */
+  .dark {
+    --background: 216 60% 11%; /* Your Navy Blue */
+    --foreground: 210 40% 98%; /* White text */
+    --card: 216 60% 15%;
+    --card-foreground: 210 40% 98%;
+    --border: 216 30% 22%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased transition-colors duration-300;
+    font-family: var(--font-body);
+  }
+
+  /* MAJOR HEADINGS: Roboto Serif */
+  h1, .font-display {
+    font-family: var(--font-major) !important;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+
+  /* NEW REQUEST & MODAL HEADINGS */
+  h2, .font-modal-title {
+    font-family: var(--font-major) !important;
+    font-weight: 600;
+    font-style: italic;
+    letter-spacing: -0.01em;
+  }
+
+  /* PLAYFUL ACCENTS */
+  h3, h4, .font-accent {
+    font-family: var(--font-playful) !important;
+    letter-spacing: 0.05em;
+  }
+}
+
+@layer utilities {
+  .font-serif-plain {
+    font-family: var(--font-major) !important;
+    font-style: normal;
+  }
+
+  .text-gradient-orange {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(26, 100%, 50%), hsl(38, 100%, 55%));
+  }
+
+  .bg-navy-gradient {
+    background: linear-gradient(180deg, hsl(216, 60%, 11%) 0%, hsl(216, 60%, 8%) 100%);
+  }
+
+  .bg-card-glass {
+    /* Made this dynamic so it works in both modes */
+    background: hsla(0, 0%, 50%, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsla(0, 0%, 100%, 0.08);
+  }
+}
+
+@layer components {
+  /* The outer body of the phone */
+  .phone-frame {
+    @apply border-[10px] border-[#0F1C2F] rounded-[3rem] shadow-2xl relative bg-black;
+    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.5);
+  }
+
+  /* The "notch" area */
+  .phone-frame::after {
+    content: '';
+    @apply absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#0F1C2F] rounded-b-xl;
+    z-index: 20;
+  }
+
+  /* The actual screen inside the frame */
+  .phone-screen {
+    /* Uses the background variable we defined above */
+    @apply rounded-[2rem] bg-background overflow-hidden relative;
+    height: 600px;
+  }
+
+  .step-line {
+    @apply absolute left-[27px] top-10 bottom-10 w-[3px] bg-primary/40 rounded-full;
+    box-shadow: 0 0 10px hsla(26, 100%, 50%, 0.2);
+  }
+}

@@ -1,0 +1,194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  REQUESTER
+  DISPATCHER
+  ADMIN
+}
+
+enum UserType {
+  STUDENT
+  STAFF
+}
+
+enum DeliveryStatus {
+  PENDING
+  PENDING_PAYMENT
+  PAID
+  ACCEPTED
+  PICKED_UP
+  DELIVERED
+  COMPLETED
+  CANCELLED
+}
+
+enum ApplicationStatus {
+  NOT_APPLIED
+  PENDING_REVIEW
+  INTERVIEW_SCHEDULED
+  APPROVED
+  REJECTED
+  REJECTED_POST_INTERVIEW
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique @db.VarChar(255)
+  password          String
+  fullName          String    @db.VarChar(255)
+  username          String?   @unique @db.VarChar(50)
+  role              Role      @default(REQUESTER)
+  userType          UserType  @default(STUDENT)
+
+  // Academic & Staff Identity
+  matricNumber      String?   @unique @db.VarChar(50)
+  staffIdUsername   String?   @unique @db.VarChar(50)
+  department        String?   @db.VarChar(100)
+  college           String?   @db.VarChar(100)
+  hostel            String?   @db.VarChar(100)
+
+  // Dispatcher Info
+  idCardUrl              String?           @db.VarChar(500)
+  selfieUrl              String?           @db.VarChar(500)
+  applicationStatus      ApplicationStatus @default(NOT_APPLIED)
+  reasonToJoin           String?           @db.Text
+  interviewLink          String?           @db.VarChar(500)
+  interviewScheduledAt   DateTime?
+  rejectionReason        String?           @db.Text
+  applicationSubmittedAt DateTime?
+  approvedAt             DateTime?
+
+  // AI Verification Results
+  aiIdCardReal       Boolean?
+  aiFaceMatchScore   Float?
+  aiVerificationFlag Boolean?
+
+  // Auth & Verification
+  isVerified        Boolean   @default(false)
+  verificationToken String?   @unique @db.VarChar(255)
+  tokenExpires      DateTime?
+  resetToken        String?   @unique @db.VarChar(255)
+  resetTokenExpires DateTime?
+  isApproved        Boolean   @default(false)
+
+  // Earnings (dispatcher)
+  weeklyBalance Decimal   @default(0) @db.Decimal(10, 2)
+  totalEarned   Decimal   @default(0) @db.Decimal(10, 2)
+  lastPayoutAt  DateTime?
+
+  // Suspension
+  isSuspended      Boolean   @default(false)
+  suspendedUntil   DateTime?
+  suspensionReason String?   @db.Text
+
+  // 🆕 Dispatcher Live Location & Online Status
+  isOnline      Boolean @default(false)
+  lastLat       Float?
+  lastLng       Float?
+  lastSeenAt    DateTime?
+
+  // 🆕 Bank Details
+  bankName             String?  @db.VarChar(100)
+  bankCode             String?  @db.VarChar(20)
+  accountNumber        String?  @db.VarChar(20)
+  accountName          String?  @db.VarChar(255)
+  bankDetailsSubmitted Boolean  @default(false)
+
+  notifDeliveryRequests Boolean @default(false)
+  notifPayoutAlerts     Boolean @default(false)
+
+  // Relations
+  deliveries   Delivery[]    @relation("Requester")
+  runs         Delivery[]    @relation("Runner")
+  payouts      Payout[]
+  loginRecords LoginRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+  @@index([resetToken])
+  @@index([isOnline])
+}
+
+model LoginRecord {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?  @db.VarChar(45)
+  userAgent String?  @db.Text
+  loginAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Delivery {
+  id           String @id @default(uuid())
+  item         String @db.VarChar(255)
+  itemImageUrl String? @db.VarChar(500)
+
+  handshakePin String? @db.VarChar(10)
+
+  // Location
+  pickupAddress  String @db.Text
+  pickupLat      Float
+  pickupLng      Float
+  dropoffAddress String @db.Text
+  dropoffLat     Float
+  dropoffLng     Float
+
+  // Pricing
+  distanceMeters Int
+  totalPrice     Decimal @db.Decimal(10, 2)
+  runnerGets     Decimal @db.Decimal(10, 2)
+  companyRevenue Decimal @db.Decimal(10, 2)
+
+  // Payment
+  status      DeliveryStatus @default(PENDING)
+  paystackRef String?        @unique @db.VarChar(255)
+
+  // Relations
+  requesterId String
+  requester   User   @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  runnerId    String?
+  runner      User?  @relation("Runner", fields: [runnerId], references: [id], onDelete: SetNull)
+
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([requesterId])
+  @@index([runnerId])
+  @@index([paystackRef])
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  email     String   @db.VarChar(255)
+  code      String   @db.VarChar(10)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+
+model Payout {
+  id           String   @id @default(uuid())
+  runnerId     String
+  amount       Float
+  reference    String   @unique
+  transferCode String?  @db.VarChar(100)
+  status       String   @default("pending")
+  createdAt    DateTime @default(now())
+
+  runner User @relation(fields: [runnerId], references: [id])
+}
