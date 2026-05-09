@@ -6,14 +6,15 @@ import {
   Map as MapIcon, ClipboardList, Trophy, User, Wallet,
   Navigation2, Star, TrendingUp, Zap, Package, MapPin,
   MessageSquare, ChevronRight, LogOut, Settings, ShieldCheck,
-  CheckCircle2, Send, ImagePlus, ArrowLeft, Phone, WifiOff, Wifi,
-  Sun, Moon, X, Building2, CreditCard, Lock, ChevronUp, ChevronDown,
-  Clock, DollarSign, Edit3, Bell, Shield, Eye, EyeOff,
+  CheckCircle2, Send, ImagePlus, ArrowLeft, WifiOff, Wifi,
+  Sun, Moon, X, Building2, CreditCard, Lock,
+  Clock, DollarSign, Eye, EyeOff, AlertCircle, Loader2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Delivery, DispatcherStats } from '@/lib/types';
 import api from '@/lib/api';
+import { LeaderboardEntry } from '@/lib/types';
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 interface ChatMessage {
@@ -29,8 +30,6 @@ interface DailyEarning {
   amount: number;
   runs: number;
 }
-
-import { LeaderboardEntry } from '@/lib/types';
 
 const PAYOUT_DAYS = 7;
 
@@ -62,7 +61,7 @@ const T = (isDark: boolean) => ({
 const nowTime = () =>
   new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-const ACTIVE_STATUSES = ['ACCEPTED','ON_MY_WAY','PICKED_UP','IN_TRANSIT','ARRIVED'] as const;
+const ACTIVE_STATUSES = ['ACCEPTED', 'ON_MY_WAY', 'PICKED_UP', 'IN_TRANSIT', 'ARRIVED'] as const;
 
 // ─── SMALL COMPONENTS ─────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon: Icon, accent, delay, isDark }: {
@@ -161,6 +160,7 @@ const BottomSheet = ({ open, onClose, title, children, isDark }: {
 };
 
 // ─── ACCOUNT SETTINGS SHEET ───────────────────────────────────────────────────
+// ✅ FIX: removed withdrawing/withdrawResult state from here — it belongs in main component
 const AccountSettings = ({ open, onClose, isDark }: { open: boolean; onClose: () => void; isDark: boolean }) => {
   const t = T(isDark);
   const { user } = useAuth();
@@ -171,30 +171,29 @@ const AccountSettings = ({ open, onClose, isDark }: { open: boolean; onClose: ()
   const [notifPayout, setNotifPayout] = useState(false);
   const [saved, setSaved] = useState(false);
 
-
   useEffect(() => {
-  if (!open) return;
-  api.get('/runner/notification-preferences')
-    .then(r => {
-      setNotifDelivery(r.data.deliveryRequests ?? false);
-      setNotifPayout(r.data.payoutAlerts ?? false);
-    })
-    .catch(() => {});
-}, [open]);
+    if (!open) return;
+    api.get('/runner/notification-preferences')
+      .then(r => {
+        setNotifDelivery(r.data.deliveryRequests ?? false);
+        setNotifPayout(r.data.payoutAlerts ?? false);
+      })
+      .catch(() => {});
+  }, [open]);
 
   const handleSave = async () => {
-  try {
-    await api.patch('/auth/profile', { fullName: name, phone, email });
-    await api.post('/runner/notification-preferences', {
-      deliveryRequests: notifDelivery,
-      payoutAlerts: notifPayout,
-    });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  } catch (err) {
-    console.error('Save failed:', err);
-  }
-};
+    try {
+      await api.patch('/auth/profile', { fullName: name, phone, email });
+      await api.post('/runner/notification-preferences', {
+        deliveryRequests: notifDelivery,
+        payoutAlerts: notifPayout,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error('Save failed:', err);
+    }
+  };
 
   const inputStyle = {
     width: '100%',
@@ -256,7 +255,7 @@ const AccountSettings = ({ open, onClose, isDark }: { open: boolean; onClose: ()
             {[
               { label: 'New delivery requests', desc: 'Get notified when orders come in', on: notifDelivery, toggle: () => setNotifDelivery(p => !p) },
               { label: 'Payout alerts', desc: 'When earnings are sent to you', on: notifPayout, toggle: () => setNotifPayout(p => !p) },
-            ].map((item, i) => (
+            ].map((item) => (
               <div key={item.label} className="flex items-center justify-between p-4 rounded-2xl border"
                 style={{ background: t.cardBg, borderColor: t.cardBorder }}>
                 <div>
@@ -281,10 +280,9 @@ const AccountSettings = ({ open, onClose, isDark }: { open: boolean; onClose: ()
 // ─── PAYMENT METHODS SHEET ────────────────────────────────────────────────────
 const PaymentMethods = ({ open, onClose, isDark }: { open: boolean; onClose: () => void; isDark: boolean }) => {
   const t = T(isDark);
-
   const [banks, setBanks]                 = useState<{ name: string; code: string }[]>([]);
   const [bankName, setBankName]           = useState('');
-  const [banksError, setBanksError] = useState(false);
+  const [banksError, setBanksError]       = useState(false);
   const [bankCode, setBankCode]           = useState('');
   const [accountNumber, setAccountNumber] = useState('');
   const [accountName, setAccountName]     = useState('');
@@ -298,57 +296,44 @@ const PaymentMethods = ({ open, onClose, isDark }: { open: boolean; onClose: () 
   } | null>(null);
 
   useEffect(() => {
-  if (!open) return;
+    if (!open) return;
+    api.get('/runner/banks')
+      .then(r => setBanks(r.data))
+      .catch(() => setBanksError(true));
+    api.get('/runner/payment-method')
+      .then(r => setLinkedAccount(r.data))
+      .catch(() => {});
+  }, [open]);
 
-  // Load bank list
-  api.get('/runner/banks')
-  .then(r => setBanks(r.data))
-  .catch(() => setBanksError(true));
-
-  // Load linked account
-  api.get('/runner/payment-method')
-    .then(r => setLinkedAccount(r.data))
-    .catch(() => {});
-}, [open]);
-
-
-useEffect(() => {
-  if (accountNumber.length !== 10 || !bankCode) {
-    setAccountName('');
+  useEffect(() => {
+    if (accountNumber.length !== 10 || !bankCode) {
+      setAccountName('');
+      setVerifyError('');
+      return;
+    }
+    setVerifying(true);
     setVerifyError('');
-    return;
-  }
-  setVerifying(true);
-  setVerifyError('');
-  setAccountName('');
+    setAccountName('');
+    api.post('/runner/verify-account', { accountNumber, bankCode })
+      .then(r => setAccountName(r.data.accountName))
+      .catch(() => setVerifyError('Could not verify account. Check number and bank.'))
+      .finally(() => setVerifying(false));
+  }, [accountNumber, bankCode]);
 
-  api.post('/runner/verify-account', { accountNumber, bankCode })
-    .then(r => setAccountName(r.data.accountName))
-    .catch(() => setVerifyError('Could not verify account. Check number and bank.'))
-    .finally(() => setVerifying(false));
-}, [accountNumber, bankCode]);
-
-const handleSave = async () => {
-  if (!bankName || !bankCode || !accountNumber || !accountName) return;
-  setSaving(true);
-  try {
-    await api.post('/runner/bank-details', {
-      bankName,
-      bankCode,   // ← was missing
-      accountNumber,
-      accountName,
-    });
-    setLinkedAccount({ bankName, accountNumber, accountName });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  } catch (err) {
-    console.error('Bank save failed:', err);
-  } finally {
-    setSaving(false);
-  }
-};
-
-
+  const handleSave = async () => {
+    if (!bankName || !bankCode || !accountNumber || !accountName) return;
+    setSaving(true);
+    try {
+      await api.post('/runner/bank-details', { bankName, bankCode, accountNumber, accountName });
+      setLinkedAccount({ bankName, accountNumber, accountName });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      console.error('Bank save failed:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const inputStyle = {
     width: '100%',
@@ -418,22 +403,22 @@ const handleSave = async () => {
             <div>
               <label style={labelStyle}>Bank</label>
               <select
-              value={bankCode}
-              onChange={e => {
-                const selected = banks.find(b => b.code === e.target.value);
-                setBankCode(e.target.value);
-                setBankName(selected?.name ?? '');
-                setAccountName('');
-                setVerifyError('');
-              }}
-              style={{ ...inputStyle, cursor: 'pointer', colorScheme: isDark ? 'dark' : 'light' }}>
-          <option value="">
-          {banksError ? 'Failed to load banks — retry' : banks.length === 0 ? 'Loading banks...' : 'Select your bank...'}
-          </option>
-              {banks.map((b, i) => (
-                <option key={`${b.code}-${i}`} value={b.code}>{b.name}</option>
-          ))}
-</select>
+                value={bankCode}
+                onChange={e => {
+                  const selected = banks.find(b => b.code === e.target.value);
+                  setBankCode(e.target.value);
+                  setBankName(selected?.name ?? '');
+                  setAccountName('');
+                  setVerifyError('');
+                }}
+                style={{ ...inputStyle, cursor: 'pointer', colorScheme: isDark ? 'dark' : 'light' }}>
+                <option value="">
+                  {banksError ? 'Failed to load banks — retry' : banks.length === 0 ? 'Loading banks...' : 'Select your bank...'}
+                </option>
+                {banks.map((b, i) => (
+                  <option key={`${b.code}-${i}`} value={b.code}>{b.name}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label style={labelStyle}>Account Number</label>
@@ -442,36 +427,32 @@ const handleSave = async () => {
             </div>
             <div>
               <label style={labelStyle}>Account Name</label>
-              
               <div className="relative">
                 <input
-                value={verifying ? 'Verifying...' : accountName}
-                readOnly
-                placeholder={
-                  !bankCode ? 'Select a bank first' :
-                  accountNumber.length < 10 ? 'Enter 10-digit account number' :
-                  'Auto-filled from your bank'
-                }
-                style={{
-                  ...inputStyle,
-                  color: accountName ? t.green : t.textMuted,
-                  cursor: 'not-allowed',}}
-                  />
-                  {verifying && (
+                  value={verifying ? 'Verifying...' : accountName}
+                  readOnly
+                  placeholder={
+                    !bankCode ? 'Select a bank first' :
+                    accountNumber.length < 10 ? 'Enter 10-digit account number' :
+                    'Auto-filled from your bank'
+                  }
+                  style={{ ...inputStyle, color: accountName ? t.green : t.textMuted, cursor: 'not-allowed' }}
+                />
+                {verifying && (
                   <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                  <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
                   </div>
-                  )}
-                  {accountName && !verifying && (
-                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                )}
+                {accountName && !verifying && (
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2">
                     <CheckCircle2 size={16} style={{ color: t.green }} />
                   </div>
                 )}
-                </div>
-                {verifyError && (
-                  <p className="text-[11px] mt-1" style={{ color: t.red }}>{verifyError}</p>
-                  )}
-                </div>
+              </div>
+              {verifyError && (
+                <p className="text-[11px] mt-1" style={{ color: t.red }}>{verifyError}</p>
+              )}
+            </div>
           </div>
         </div>
         <div className="flex gap-3 p-4 rounded-2xl" style={{ background: t.whiteFaint }}>
@@ -481,11 +462,11 @@ const handleSave = async () => {
           </p>
         </div>
         <motion.button
-        onClick={handleSave}
-        whileTap={{ scale: 0.97 }}
-        disabled={!bankCode || !accountNumber || !accountName || verifying || saving}
-        className="w-full py-4 rounded-2xl font-black text-white text-sm disabled:opacity-40"
-        style={{ background: saved ? t.green : t.orange, transition: 'background 0.3s' }}>
+          onClick={handleSave}
+          whileTap={{ scale: 0.97 }}
+          disabled={!bankCode || !accountNumber || !accountName || verifying || saving}
+          className="w-full py-4 rounded-2xl font-black text-white text-sm disabled:opacity-40"
+          style={{ background: saved ? t.green : t.orange, transition: 'background 0.3s' }}>
           {saving ? 'Saving...' : saved ? '✓ Bank Details Saved!' : 'Save Bank Details'}
         </motion.button>
       </div>
@@ -494,13 +475,16 @@ const handleSave = async () => {
 };
 
 // ─── EARNINGS DETAIL MODAL ────────────────────────────────────────────────────
-const EarningsDetail = ({ open, onClose, isDark, stats, dailyEarnings, daysSincePayout }: {
+// ✅ FIX: added onWithdraw prop so the real withdraw action can be triggered from here
+const EarningsDetail = ({ open, onClose, isDark, stats, dailyEarnings, daysSincePayout, onWithdraw, withdrawing }: {
   open: boolean;
   onClose: () => void;
   isDark: boolean;
   stats: DispatcherStats;
   dailyEarnings: DailyEarning[];
   daysSincePayout: number;
+  onWithdraw: () => void;    // ✅ NEW
+  withdrawing: boolean;      // ✅ NEW
 }) => {
   const t = T(isDark);
   const maxAmount = Math.max(...dailyEarnings.map(d => d.amount), 1);
@@ -594,8 +578,22 @@ const EarningsDetail = ({ open, onClose, isDark, stats, dailyEarnings, daysSince
           </div>
         </div>
 
+        {/* ✅ REAL WITHDRAW BUTTON */}
+        <motion.button
+          onClick={onWithdraw}
+          whileTap={{ scale: 0.97 }}
+          disabled={withdrawing || weeklyTotal < 100}
+          className="w-full py-4 rounded-2xl font-black text-white text-sm flex items-center justify-center gap-2 disabled:opacity-40"
+          style={{ background: t.orange }}>
+          {withdrawing
+            ? <><Loader2 size={16} className="animate-spin" /> Processing...</>
+            : weeklyTotal < 100
+              ? 'Minimum withdrawal is ₦100'
+              : `💸 Withdraw ₦${weeklyTotal.toLocaleString()} to Bank`}
+        </motion.button>
+
         <p className="text-center text-[10px]" style={{ color: t.textMuted }}>
-          Payouts are processed manually by admin every 7 days. You will receive an email when sent.
+          Funds are sent directly to your linked bank account via Paystack.
         </p>
       </div>
     </BottomSheet>
@@ -690,27 +688,14 @@ const DeliveryCompleteScreen = ({ fee, onDismiss, isDark }: { fee: number; onDis
 
 // ─── CHAT ROOM ────────────────────────────────────────────────────────────────
 const ChatRoom = ({
-  job,
-  onClose,
-  isDeliveryComplete,
-  isDark,
+  job, onClose, isDeliveryComplete, isDark,
 }: {
-  job: Delivery;
-  onClose: () => void;
-  isDeliveryComplete: boolean;
-  isDark: boolean;
+  job: Delivery; onClose: () => void; isDeliveryComplete: boolean; isDark: boolean;
 }) => {
   const t = T(isDark);
-
   const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      sender: 'dispatcher',
-      text: "Hello! I'm heading to pick up your item now. I'll send a photo of the item so you can confirm.",
-      timestamp: nowTime(),
-    },
+    { id: '1', sender: 'dispatcher', text: "Hello! I'm heading to pick up your item now. I'll send a photo of the item so you can confirm.", timestamp: nowTime() },
   ]);
-
   const [input, setInput] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -720,19 +705,8 @@ const ChatRoom = ({
     if (isDeliveryComplete && !completionSentRef.current) {
       completionSentRef.current = true;
       setTimeout(() => {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            sender: 'dispatcher',
-            text: '✅ Item delivered successfully! Thanks for using CampusRun.',
-            timestamp: nowTime(),
-          },
-        ]);
-        setTimeout(() => {
-          bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-          setTimeout(onClose, 2000);
-        }, 200);
+        setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'dispatcher', text: '✅ Item delivered successfully! Thanks for using CampusRun.', timestamp: nowTime() }]);
+        setTimeout(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); setTimeout(onClose, 2000); }, 200);
       }, 300);
     }
   }, [isDeliveryComplete, onClose]);
@@ -740,36 +714,16 @@ const ChatRoom = ({
   const send = (text?: string, image?: string) => {
     if (!text?.trim() && !image) return;
     if (isDeliveryComplete) return;
-
-    const msg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: 'dispatcher',
-      text,
-      image,
-      timestamp: nowTime(),
-    };
-
+    const msg: ChatMessage = { id: Date.now().toString(), sender: 'dispatcher', text, image, timestamp: nowTime() };
     setMessages(prev => [...prev, msg]);
     setInput('');
-
     if (image) {
       setTimeout(() => {
-        setMessages(prev => [
-          ...prev,
-          {
-            id: Date.now().toString(),
-            sender: 'requester',
-            text: 'Thanks! That looks right. See you soon 🙏',
-            timestamp: nowTime(),
-          },
-        ]);
+        setMessages(prev => [...prev, { id: Date.now().toString(), sender: 'requester', text: 'Thanks! That looks right. See you soon 🙏', timestamp: nowTime() }]);
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 1500);
     }
-
-    setTimeout(() => {
-      bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+    setTimeout(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, 100);
   };
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -781,71 +735,35 @@ const ChatRoom = ({
   };
 
   return (
-    <motion.div
-      initial={{ x: '100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '100%' }}
-      className="fixed inset-0 z-50 flex flex-col"
-      style={{ background: t.pageBg }}
-    >
-      <div className="flex items-center gap-4 px-5 py-4 border-b"
-        style={{ background: t.headerBg, borderColor: t.divider }}>
-        <button onClick={onClose} className="p-2 rounded-xl"
-          style={{ background: t.whiteFaint, color: t.textPrimary }}>
-          <ArrowLeft size={20} />
-        </button>
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white"
-          style={{ background: t.orange }}>
-          {job.requesterName?.[0] ?? 'R'}
-        </div>
+    <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed inset-0 z-50 flex flex-col" style={{ background: t.pageBg }}>
+      <div className="flex items-center gap-4 px-5 py-4 border-b" style={{ background: t.headerBg, borderColor: t.divider }}>
+        <button onClick={onClose} className="p-2 rounded-xl" style={{ background: t.whiteFaint, color: t.textPrimary }}><ArrowLeft size={20} /></button>
+        <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white" style={{ background: t.orange }}>{job.requesterName?.[0] ?? 'R'}</div>
         <div className="flex-1">
-          <p className="font-black text-sm" style={{ color: t.textPrimary }}>
-            {job.requesterName ?? 'Requester'}
-          </p>
-          <p className="text-[10px] font-bold uppercase"
-            style={{ color: isDeliveryComplete ? t.textMuted : t.green }}>
-            {isDeliveryComplete ? 'Delivery Complete' : 'Active Now'}
-          </p>
+          <p className="font-black text-sm" style={{ color: t.textPrimary }}>{job.requesterName ?? 'Requester'}</p>
+          <p className="text-[10px] font-bold uppercase" style={{ color: isDeliveryComplete ? t.textMuted : t.green }}>{isDeliveryComplete ? 'Delivery Complete' : 'Active Now'}</p>
         </div>
       </div>
-
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
         {messages.map(msg => (
           <div key={msg.id} className={cn('flex', msg.sender === 'dispatcher' ? 'justify-end' : 'justify-start')}>
-            <div className="max-w-[75%]"
-              style={{ background: msg.sender === 'dispatcher' ? t.orange : t.cardBg, borderRadius: 16, padding: 10 }}>
-              {msg.image && (
-                <img src={msg.image} alt='shared' className="w-full max-h-60 object-cover rounded-xl mb-2" />
-              )}
-              {msg.text && (
-                <p style={{ color: msg.sender === 'dispatcher' ? '#fff' : t.textPrimary }}>{msg.text}</p>
-              )}
-              <p className="text-[10px] mt-1"
-                style={{ color: msg.sender === 'dispatcher' ? '#ffffffaa' : t.textMuted }}>
-                {msg.timestamp}
-              </p>
+            <div className="max-w-[75%]" style={{ background: msg.sender === 'dispatcher' ? t.orange : t.cardBg, borderRadius: 16, padding: 10 }}>
+              {msg.image && <img src={msg.image} alt='shared' className="w-full max-h-60 object-cover rounded-xl mb-2" />}
+              {msg.text && <p style={{ color: msg.sender === 'dispatcher' ? '#fff' : t.textPrimary }}>{msg.text}</p>}
+              <p className="text-[10px] mt-1" style={{ color: msg.sender === 'dispatcher' ? '#ffffffaa' : t.textMuted }}>{msg.timestamp}</p>
             </div>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
-
       <div className="px-4 py-3 border-t" style={{ background: t.headerBg, borderColor: t.divider }}>
         {isDeliveryComplete ? (
-          <div className="text-center text-xs font-bold" style={{ color: t.textMuted }}>
-            Chat ended — delivery complete
-          </div>
+          <div className="text-center text-xs font-bold" style={{ color: t.textMuted }}>Chat ended — delivery complete</div>
         ) : (
           <div className="flex gap-2">
-            <button onClick={() => fileRef.current?.click()} className="p-2 rounded-lg" style={{ background: t.orange }}>
-              <ImagePlus size={16} className="text-white" />
-            </button>
-            <input value={input} onChange={e => setInput(e.target.value)}
-              placeholder="Type message..." className="flex-1 px-3 py-2 rounded-lg outline-none"
-              style={{ background: t.inputBg }} />
-            <button onClick={() => send(input)} className="px-3 rounded-lg text-white" style={{ background: t.orange }}>
-              <Send size={16} />
-            </button>
+            <button onClick={() => fileRef.current?.click()} className="p-2 rounded-lg" style={{ background: t.orange }}><ImagePlus size={16} className="text-white" /></button>
+            <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type message..." className="flex-1 px-3 py-2 rounded-lg outline-none" style={{ background: t.inputBg }} />
+            <button onClick={() => send(input)} className="px-3 rounded-lg text-white" style={{ background: t.orange }}><Send size={16} /></button>
           </div>
         )}
         <input ref={fileRef} type="file" className="hidden" onChange={handleImage} />
@@ -861,129 +779,119 @@ const DispatcherDashboard = () => {
   const [deliveryStep,     setDeliveryStep]     = useState<'IDLE' | 'ARRIVING' | 'PICKED_UP'>('IDLE');
   const [chatOpen,         setChatOpen]         = useState(false);
   const [deliveryComplete, setDeliveryComplete] = useState(false);
+  const [settingsOpen,     setSettingsOpen]     = useState(false);
+  const [paymentOpen,      setPaymentOpen]      = useState(false);
+  const [earningsOpen,     setEarningsOpen]     = useState(false);
 
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [paymentOpen,  setPaymentOpen]  = useState(false);
-  const [earningsOpen, setEarningsOpen] = useState(false);
+  // ✅ FIX: withdraw state lives HERE in the main component
+  const [withdrawing,     setWithdrawing]     = useState(false);
+  const [withdrawSuccess, setWithdrawSuccess] = useState<string | null>(null);
+  const [withdrawError,   setWithdrawError]   = useState<string | null>(null);
 
-  const navigate    = useNavigate();
+  const navigate = useNavigate();
   const { logout, user } = useAuth();
 
   const [isDark, setIsDark] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)').matches : true
   );
 
-  // ─── API STATE ───────────────────────────────────────────────────────────────
   const [deliveries,      setDeliveries]      = useState<Delivery[]>([]);
   const [stats,           setStats]           = useState<DispatcherStats | null>(null);
   const [leaderboard,     setLeaderboard]     = useState<LeaderboardEntry[]>([]);
   const [dailyEarnings,   setDailyEarnings]   = useState<DailyEarning[]>([]);
   const [daysSincePayout, setDaysSincePayout] = useState(0);
 
-
-  // ── Replace fetchDashboardData ─────────────────────────────
-const fetchDashboardData = useCallback(async () => {
-  try {
-    const [deliveriesRes, statsRes, leaderboardRes, earningsRes] = await Promise.all([
-       api.get('/runner/deliveries'),
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      const [deliveriesRes, statsRes, leaderboardRes, earningsRes] = await Promise.all([
+        api.get('/runner/deliveries'),
         api.get('/runner/stats'),
         api.get('/runner/leaderboard'),
         api.get('/runner/earnings-breakdown'),
-    ]);
-
-    setDeliveries(deliveriesRes.data);
-    setStats(statsRes.data);
-    setLeaderboard(leaderboardRes.data);
-    setDailyEarnings(earningsRes.data.dailyEarnings ?? earningsRes.data);
-    if (earningsRes.data.daysSincePayout !== undefined) {
-      setDaysSincePayout(earningsRes.data.daysSincePayout);
+      ]);
+      setDeliveries(deliveriesRes.data);
+      setStats(statsRes.data);
+      setLeaderboard(leaderboardRes.data);
+      setDailyEarnings(earningsRes.data.dailyEarnings ?? earningsRes.data);
+      if (earningsRes.data.daysSincePayout !== undefined) {
+        setDaysSincePayout(earningsRes.data.daysSincePayout);
+      }
+    } catch (error) {
+      console.error('Dashboard fetch error:', error);
     }
-  } catch (error) {
-    console.error('Dashboard fetch error:', error);
-  } },
-  []);
+  }, []);
 
-  useEffect(() => {
-    fetchDashboardData();
+  useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
+
+  // ✅ REAL WITHDRAW HANDLER
+  const handleWithdraw = useCallback(async () => {
+    setWithdrawing(true);
+    setWithdrawError(null);
+    setWithdrawSuccess(null);
+    try {
+      const res = await api.post('/runner/withdraw');
+      setWithdrawSuccess(res.data.message ?? 'Transfer initiated! Funds on their way.');
+      // Refresh balance immediately so UI shows ₦0
+      await fetchDashboardData();
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => setWithdrawSuccess(null), 5000);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? 'Withdrawal failed. Try again.';
+      setWithdrawError(msg);
+      setTimeout(() => setWithdrawError(null), 5000);
+    } finally {
+      setWithdrawing(false);
+    }
   }, [fetchDashboardData]);
 
-
-
-
-  // ── Update dispatcher location on backend ──────────────────────────────────
   const updateLocation = useCallback(async (lat: number, lng: number, online: boolean) => {
-  try {
-    await api.post('/runner/location', { lat, lng, isOnline: online });
-  } catch (err) {
-    console.error('Location update failed:', err);
-  }
-}, []);
+    try {
+      await api.post('/runner/location', { lat, lng, isOnline: online });
+    } catch (err) {
+      console.error('Location update failed:', err);
+    }
+  }, []);
 
-// ── GPS tracking when online ────────────────────────────────────────────────
-const locationWatchRef = useRef<number | null>(null);
+  const locationWatchRef = useRef<number | null>(null);
 
-const startLocationTracking = useCallback(() => {
-  if (!navigator.geolocation) return;
+  const startLocationTracking = useCallback(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { updateLocation(pos.coords.latitude, pos.coords.longitude, true); },
+      (err) => console.error('GPS error:', err),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+    locationWatchRef.current = navigator.geolocation.watchPosition(
+      (pos) => { updateLocation(pos.coords.latitude, pos.coords.longitude, true); },
+      (err) => console.error('GPS watch error:', err),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+    );
+  }, [updateLocation]);
 
-  // Get immediate position
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      updateLocation(pos.coords.latitude, pos.coords.longitude, true);
-    },
-    (err) => console.error('GPS error:', err),
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-  );
-
-  // Watch position continuously
-  locationWatchRef.current = navigator.geolocation.watchPosition(
-    (pos) => {
-      updateLocation(pos.coords.latitude, pos.coords.longitude, true);
-    },
-    (err) => console.error('GPS watch error:', err),
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
-  );
-}, [updateLocation]);
-
-const stopLocationTracking = useCallback(() => {
-  if (locationWatchRef.current !== null) {
-    navigator.geolocation.clearWatch(locationWatchRef.current);
-    locationWatchRef.current = null;
-  }
-  updateLocation(0, 0, false);
-}, [updateLocation]);
-
-// ── React to online/offline toggle ─────────────────────────────────────────
-useEffect(() => {
-  if (isOnline) {
-    startLocationTracking();
-  } else {
-    stopLocationTracking();
-  }
-  // Cleanup on unmount
-  return () => {
+  const stopLocationTracking = useCallback(() => {
     if (locationWatchRef.current !== null) {
       navigator.geolocation.clearWatch(locationWatchRef.current);
+      locationWatchRef.current = null;
     }
-  };
-}, [isOnline, startLocationTracking, stopLocationTracking]);
+    updateLocation(0, 0, false);
+  }, [updateLocation]);
 
+  useEffect(() => {
+    if (isOnline) startLocationTracking();
+    else stopLocationTracking();
+    return () => {
+      if (locationWatchRef.current !== null) navigator.geolocation.clearWatch(locationWatchRef.current);
+    };
+  }, [isOnline, startLocationTracking, stopLocationTracking]);
 
-
-// ── Replace sendBeacon on unload ───────────────────────────
-useEffect(() => {
-  const handleUnload = () => {
-    const token = localStorage.getItem('campusrun_token');
-    navigator.sendBeacon(
-      '/api/runner/location-unload',
-      new Blob(
-        [JSON.stringify({ lat: 0, lng: 0, isOnline: false, token })],
-        { type: 'application/json' }
-      )
-    );
-  };
-  window.addEventListener('beforeunload', handleUnload);
-  return () => window.removeEventListener('beforeunload', handleUnload);
-}, []);
+  useEffect(() => {
+    const handleUnload = () => {
+      const token = localStorage.getItem('campusrun_token');
+      navigator.sendBeacon('/api/runner/location-unload', new Blob([JSON.stringify({ lat: 0, lng: 0, isOnline: false, token })], { type: 'application/json' }));
+    };
+    window.addEventListener('beforeunload', handleUnload);
+    return () => window.removeEventListener('beforeunload', handleUnload);
+  }, []);
 
   const t = T(isDark);
 
@@ -1000,20 +908,18 @@ useEffect(() => {
 
   const handleDismissComplete = () => { setDeliveryComplete(false); setChatOpen(false); };
   const handleSignOut = () => { logout(); navigate('/login'); };
-
   const stepLabel = { IDLE: 'Heading to Pickup', ARRIVING: 'On My Way', PICKED_UP: 'Item Picked Up' }[deliveryStep];
-
-  const weeklyTotal   = dailyEarnings.reduce((s, d) => s + d.amount, 0);
-  const maxBar        = Math.max(...dailyEarnings.map(d => d.amount), 1);
-  const daysLeft      = PAYOUT_DAYS - daysSincePayout;
+  const weeklyTotal = dailyEarnings.reduce((s, d) => s + d.amount, 0);
+  const maxBar      = Math.max(...dailyEarnings.map(d => d.amount), 1);
+  const daysLeft    = PAYOUT_DAYS - daysSincePayout;
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden font-sans"
-      style={{ background: t.pageBg, color: t.textPrimary }}>
+    <div className="flex flex-col h-screen overflow-hidden font-sans" style={{ background: t.pageBg, color: t.textPrimary }}>
 
       <AccountSettings open={settingsOpen} onClose={() => setSettingsOpen(false)} isDark={isDark} />
       <PaymentMethods  open={paymentOpen}  onClose={() => setPaymentOpen(false)}  isDark={isDark} />
       {stats && (
+        // ✅ FIX: pass onWithdraw and withdrawing down into EarningsDetail
         <EarningsDetail
           open={earningsOpen}
           onClose={() => setEarningsOpen(false)}
@@ -1021,8 +927,30 @@ useEffect(() => {
           stats={stats}
           dailyEarnings={dailyEarnings}
           daysSincePayout={daysSincePayout}
+          onWithdraw={handleWithdraw}
+          withdrawing={withdrawing}
         />
       )}
+
+      {/* ✅ Toast notifications for withdraw result */}
+      <AnimatePresence>
+        {(withdrawSuccess || withdrawError) && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 left-4 right-4 z-[200] p-4 rounded-2xl flex items-start gap-3 shadow-2xl"
+            style={{ background: withdrawSuccess ? t.green : t.red }}>
+            {withdrawSuccess
+              ? <CheckCircle2 size={18} className="text-white shrink-0 mt-0.5" />
+              : <AlertCircle  size={18} className="text-white shrink-0 mt-0.5" />}
+            <p className="text-white text-sm font-bold flex-1">
+              {withdrawSuccess ?? withdrawError}
+            </p>
+            <button onClick={() => { setWithdrawSuccess(null); setWithdrawError(null); }} className="text-white/70 hover:text-white">
+              <X size={16} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {!isOnline && <OfflineOverlay onGoOnline={() => setIsOnline(true)} isDark={isDark} stats={stats} />}
@@ -1068,8 +996,7 @@ useEffect(() => {
 
           {/* RUN TAB */}
           {activeTab === 'home' && (
-            <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="h-full flex flex-col">
+            <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col">
               <div className="flex-1 relative overflow-hidden min-h-[70vh]" style={{ background: t.pageBg }}>
                 <div className="absolute inset-0 opacity-5 pointer-events-none">
                   <div className="w-full h-full bg-[radial-gradient(#888888_1px,transparent_1px)] [background-size:32px_32px]" />
@@ -1079,9 +1006,7 @@ useEffect(() => {
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
                       className="p-6 rounded-[2.5rem] flex items-center gap-4 text-white pointer-events-auto shadow-2xl"
                       style={{ background: t.orange }}>
-                      <div className="bg-white/20 p-4 rounded-2xl animate-bounce">
-                        <Package size={28} />
-                      </div>
+                      <div className="bg-white/20 p-4 rounded-2xl animate-bounce"><Package size={28} /></div>
                       <div>
                         <p className="text-[10px] font-black uppercase opacity-80 tracking-widest">Scanning Campus...</p>
                         <p className="font-black text-xl">Searching for runs</p>
@@ -1205,7 +1130,6 @@ useEffect(() => {
           {/* RANK / PERFORMANCE TAB */}
           {activeTab === 'performance' && (
             <motion.div key="performance" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="p-6 space-y-6">
-
               {/* Wallet card */}
               <div className="p-8 rounded-[3rem] shadow-xl relative overflow-hidden"
                 style={{ background: `linear-gradient(135deg, ${t.orange}, #E65100)` }}>
@@ -1223,9 +1147,15 @@ useEffect(() => {
                     className="bg-white font-black rounded-2xl px-8 py-6 hover:bg-white/90" style={{ color: t.orange }}>
                     View Details
                   </Button>
-                  <Button variant="ghost" className="text-white/80 font-bold hover:text-white"
-                    onClick={() => setEarningsOpen(true)}>
-                    Withdraw
+                  {/* ✅ FIX: Withdraw now calls handleWithdraw directly, not setEarningsOpen */}
+                  <Button
+                    onClick={handleWithdraw}
+                    disabled={withdrawing || weeklyTotal < 100}
+                    variant="ghost"
+                    className="text-white/80 font-bold hover:text-white disabled:opacity-50 flex items-center gap-2">
+                    {withdrawing
+                      ? <><Loader2 size={14} className="animate-spin" /> Sending...</>
+                      : '💸 Withdraw'}
                   </Button>
                 </div>
               </div>
@@ -1260,7 +1190,6 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Stats */}
               {stats && (
                 <div className="grid grid-cols-2 gap-4">
                   <StatCard label="Reliability" value={`${stats.reliability}%`}   icon={TrendingUp} accent delay={0.1} isDark={isDark} />
@@ -1270,7 +1199,6 @@ useEffect(() => {
                 </div>
               )}
 
-              {/* Leaderboard */}
               <section className="pt-4">
                 <div className="flex justify-between items-center mb-6 px-2">
                   <h3 className="font-black text-xl flex items-center gap-2" style={{ color: t.textPrimary }}>
@@ -1339,35 +1267,29 @@ useEffect(() => {
                   </p>
                 </div>
               </div>
-
               <div className="space-y-3">
                 {[
-                  { icon: Settings,   label: 'Account Settings',  desc: 'Name, phone, notifications',   danger: false, action: () => setSettingsOpen(true) },
-                  { icon: CreditCard, label: 'Payment Methods',   desc: 'Bank details for payouts',      danger: false, action: () => setPaymentOpen(true) },
-                  { icon: DollarSign, label: 'Earnings & Payouts',desc: 'View your balance breakdown',   danger: false, action: () => setEarningsOpen(true) },
-                  { icon: LogOut,     label: 'Sign Out',           desc: 'Securely exit your account',   danger: true,  action: handleSignOut },
+                  { icon: Settings,   label: 'Account Settings',   desc: 'Name, phone, notifications',  danger: false, action: () => setSettingsOpen(true) },
+                  { icon: CreditCard, label: 'Payment Methods',    desc: 'Bank details for payouts',     danger: false, action: () => setPaymentOpen(true) },
+                  { icon: DollarSign, label: 'Earnings & Payouts', desc: 'View your balance breakdown',  danger: false, action: () => setEarningsOpen(true) },
+                  { icon: LogOut,     label: 'Sign Out',            desc: 'Securely exit your account',  danger: true,  action: handleSignOut },
                 ].map((item, i) => (
                   <motion.button key={i} onClick={item.action} whileTap={{ scale: 0.98 }}
                     className="w-full p-5 rounded-[2rem] border flex items-center justify-between group active:opacity-80"
                     style={{ background: t.cardBg, borderColor: t.cardBorder }}>
                     <div className="flex items-center gap-4 text-left">
-                      <div className="p-3 rounded-2xl"
-                        style={{ background: item.danger ? t.dangerBg : `${t.orange}18` }}>
+                      <div className="p-3 rounded-2xl" style={{ background: item.danger ? t.dangerBg : `${t.orange}18` }}>
                         <item.icon size={20} style={{ color: item.danger ? t.red : t.orange }} />
                       </div>
                       <div>
-                        <span className="font-black text-sm block"
-                          style={{ color: item.danger ? t.red : t.textPrimary }}>{item.label}</span>
-                        <span className="text-[10px] font-medium uppercase tracking-tight"
-                          style={{ color: t.textMuted }}>{item.desc}</span>
+                        <span className="font-black text-sm block" style={{ color: item.danger ? t.red : t.textPrimary }}>{item.label}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-tight" style={{ color: t.textMuted }}>{item.desc}</span>
                       </div>
                     </div>
-                    <ChevronRight size={18} style={{ color: t.textMuted }}
-                      className="group-hover:translate-x-1 transition-transform" />
+                    <ChevronRight size={18} style={{ color: t.textMuted }} className="group-hover:translate-x-1 transition-transform" />
                   </motion.button>
                 ))}
               </div>
-
               <p className="text-center mt-12 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: t.textMuted }}>
                 CampusRun v1.0.0
               </p>

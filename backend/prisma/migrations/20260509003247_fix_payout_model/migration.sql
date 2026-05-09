@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Payout" ADD COLUMN     "bankName" TEXT NOT NULL DEFAULT '',
+ALTER COLUMN "status" SET DEFAULT 'PENDING';

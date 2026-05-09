@@ -12,6 +12,7 @@ import authRoutes from './routes/auth.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import runnerRoutes from './routes/runnerRoutes.js';
+import { paystackWebhook } from './controllers/payoutController.js';
 
 dotenv.config();
 
@@ -23,18 +24,17 @@ export const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:8080',
   'http://localhost:5000',
-  // 'http://localhost:5173',
 ].filter(Boolean);
 
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true);
-    const isAllowed = allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.railway.app');
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    const isAllowed =
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.railway.app');
+    if (isAllowed) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -44,28 +44,40 @@ const corsOptions = {
 // ── Initialize Socket.io ─────────────────────────────────────────────────────
 initSocket(httpServer);
 
-// ── Middlewares ──────────────────────────────────────────────────────────────
+// ── CORS (must come before routes) ───────────────────────────────────────────
 app.use(cors(corsOptions));
+
+// ── Paystack Webhook — MUST be before express.json() ─────────────────────────
+// Paystack sends a raw Buffer body. If express.json() runs first it consumes
+// the body and our signature check will always fail.
+app.post(
+  '/api/webhooks/paystack',
+  express.raw({ type: 'application/json' }),
+  paystackWebhook
+);
+
+// ── General Middlewares (after webhook) ───────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Paths
+// ── Static Uploads ────────────────────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname  = path.dirname(__filename);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ── Routes ────────────────────────────────────────────────────────────────────
-app.use('/api/auth', authRoutes);
+// ── API Routes ────────────────────────────────────────────────────────────────
+app.use('/api/auth',   authRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/admin', adminRoutes);
+app.use('/api/admin',  adminRoutes);
 app.use('/api/runner', runnerRoutes);
 app.use('/api/upload', uploadRoutes);
 
+// ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'Campus Run API is running 🚀' });
 });
 
-// ── Start server ──────────────────────────────────────────────────────────────
+// ── Start Server ──────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`✅ Server live on port ${PORT}`);

@@ -82,6 +82,8 @@ model User {
   weeklyBalance Decimal   @default(0) @db.Decimal(10, 2)
   totalEarned   Decimal   @default(0) @db.Decimal(10, 2)
   lastPayoutAt  DateTime?
+  paystackRecipientCode  String?   // RCP_xxx from Paystack
+
 
   // Suspension
   isSuspended      Boolean   @default(false)
@@ -185,9 +187,10 @@ model Payout {
   id           String   @id @default(uuid())
   runnerId     String
   amount       Float
-  reference    String   @unique
+  reference    String   @unique @default(cuid())  // ← auto-generate so you don't need to pass it manually
   transferCode String?  @db.VarChar(100)
-  status       String   @default("pending")
+  status       String   @default("PENDING")       // ← uppercase to match your controller
+  bankName     String   @default("")              // ← add this, controller saves it
   createdAt    DateTime @default(now())
 
   runner User @relation(fields: [runnerId], references: [id])

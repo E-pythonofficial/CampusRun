@@ -4,6 +4,9 @@ import { sendApplicationReceivedEmail } from '../services/email.service.js';
 import { emitToAdmin, emitToAll, emitToRequester } from '../services/socket.service.js';
 import jwt from 'jsonwebtoken';
 
+import { createTransferRecipient } from './payoutController.js';
+
+
 // ── Submit runner application ──────────────────────────────────────────────────
 export const submitApplication = async (req, res) => {
   try {
@@ -349,6 +352,17 @@ export const saveBankDetails = async (req, res) => {
       return res.status(400).json({ message: 'All bank fields are required' });
     }
 
+    // Create Paystack recipient so withdrawals work later
+    let paystackRecipientCode = null;
+    try {
+      paystackRecipientCode = await createTransferRecipient(
+        accountNumber, bankCode, accountName
+      );
+    } catch (err) {
+      console.error('Paystack recipient creation failed:', err.message);
+      // Don't block saving — admin can fix manually
+    }
+
     await prisma.user.update({
       where: { id: runnerId },
       data: {
@@ -356,7 +370,8 @@ export const saveBankDetails = async (req, res) => {
         bankCode,
         accountNumber,
         accountName,
-        bankDetailsSubmitted: true,
+        bankDetailsSubmitted:  true,
+        paystackRecipientCode, // ← saves the RCP_xxx code
       },
     });
 

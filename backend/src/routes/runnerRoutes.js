@@ -27,6 +27,9 @@ import {
   verifyBankAccount,
 } from '../controllers/runnerController.js';
 
+import { withdrawEarnings, getPayoutHistory } from '../controllers/payoutController.js';
+
+
 const router = express.Router();
 
 // ── Application ───────────────────────────────────────────────────────────────
@@ -64,5 +67,8 @@ router.post('/:orderId/confirm-pin', protect, completeRun);
 
 // ── Bank details ──────────────────────────────────────────────────────────────
 router.post('/bank-details', protect, saveBankDetails);
+
+router.post('/withdraw',      protect,    withdrawEarnings);   // ← match your existing name
+router.get('/payout-history', protect,    getPayoutHistory);
 
 export default router;
