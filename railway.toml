@@ -1,0 +1,5 @@
+[build]
+buildCommand = "npm install && npm run build"
+
+[deploy]
+startCommand = "caddy run --config /dev/stdin <<'EOF'\n:$PORT {\n  root * /app/dist\n  try_files {path} /index.html\n  file_server\n}\nEOF"
