@@ -15,7 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/lib/auth-context';
-import axios from 'axios';
+import api from 'axios';
 
 interface Message {
   id: string;
@@ -73,7 +73,7 @@ const PaymentSuccess = () => {
 
       try {
         const token = localStorage.getItem('campusrun_token');
-        const res   = await axios.get(`/api/orders/verify/${tr_ref}`, {
+        const res   = await api.get(`/api/orders/verify/${tr_ref}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.data.status === 'success') {

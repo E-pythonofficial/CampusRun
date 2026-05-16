@@ -488,7 +488,7 @@ const EarningsDetail = ({ open, onClose, isDark, stats, dailyEarnings, daysSince
 }) => {
   const t = T(isDark);
   const maxAmount = Math.max(...dailyEarnings.map(d => d.amount), 1);
-  const weeklyTotal = dailyEarnings.reduce((s, d) => s + d.amount, 0);
+  const weeklyTotal = (dailyEarnings ?? []).reduce((s, d) => s + d.amount, 0);
   const today = new Date().getDay();
   const daysLeft = PAYOUT_DAYS - daysSincePayout;
 
@@ -800,26 +800,35 @@ const DispatcherDashboard = () => {
   const [leaderboard,     setLeaderboard]     = useState<LeaderboardEntry[]>([]);
   const [dailyEarnings,   setDailyEarnings]   = useState<DailyEarning[]>([]);
   const [daysSincePayout, setDaysSincePayout] = useState(0);
+  const weeklyTotal = (dailyEarnings ?? []).reduce((s, d) => s + d.amount, 0);
 
+  
   const fetchDashboardData = useCallback(async () => {
-    try {
-      const [deliveriesRes, statsRes, leaderboardRes, earningsRes] = await Promise.all([
-        api.get('/runner/deliveries'),
-        api.get('/runner/stats'),
-        api.get('/runner/leaderboard'),
-        api.get('/runner/earnings-breakdown'),
-      ]);
-      setDeliveries(deliveriesRes.data);
-      setStats(statsRes.data);
-      setLeaderboard(leaderboardRes.data);
-      setDailyEarnings(earningsRes.data.dailyEarnings ?? earningsRes.data);
-      if (earningsRes.data.daysSincePayout !== undefined) {
-        setDaysSincePayout(earningsRes.data.daysSincePayout);
+  try {
+    const [deliveriesRes, statsRes, leaderboardRes, earningsRes] = await Promise.all([
+      api.get('/runner/deliveries'),
+      api.get('/runner/stats'),
+      api.get('/runner/leaderboard'),
+      api.get('/runner/earnings-breakdown'),
+    ]);
+
+    // ← Add Array.isArray guards on everything
+    if (Array.isArray(deliveriesRes.data)) setDeliveries(deliveriesRes.data);
+    if (statsRes.data && typeof statsRes.data === 'object') setStats(statsRes.data);
+    if (Array.isArray(leaderboardRes.data)) setLeaderboard(leaderboardRes.data);
+
+    const earningsData = earningsRes.data;
+    if (earningsData) {
+      const daily = earningsData.dailyEarnings ?? earningsData;
+      if (Array.isArray(daily)) setDailyEarnings(daily);
+      if (earningsData.daysSincePayout !== undefined) {
+        setDaysSincePayout(earningsData.daysSincePayout);
       }
-    } catch (error) {
-      console.error('Dashboard fetch error:', error);
     }
-  }, []);
+  } catch (error) {
+    console.error('Dashboard fetch error:', error);
+  }
+}, []);
 
   useEffect(() => { fetchDashboardData(); }, [fetchDashboardData]);
 
@@ -909,8 +918,7 @@ const DispatcherDashboard = () => {
   const handleDismissComplete = () => { setDeliveryComplete(false); setChatOpen(false); };
   const handleSignOut = () => { logout(); navigate('/login'); };
   const stepLabel = { IDLE: 'Heading to Pickup', ARRIVING: 'On My Way', PICKED_UP: 'Item Picked Up' }[deliveryStep];
-  const weeklyTotal = dailyEarnings.reduce((s, d) => s + d.amount, 0);
-  const maxBar      = Math.max(...dailyEarnings.map(d => d.amount), 1);
+  const maxBar = Math.max(...(dailyEarnings ?? []).map(d => d.amount), 1);
   const daysLeft    = PAYOUT_DAYS - daysSincePayout;
 
   return (

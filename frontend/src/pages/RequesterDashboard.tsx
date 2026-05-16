@@ -7,7 +7,6 @@ import { useAuth } from '@/lib/auth-context';
 import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 import {
   Plus, History, X, LogOut, Menu, User, ShieldCheck,
   Info, ChevronRight, MapPin, Navigation, CreditCard,
@@ -16,6 +15,10 @@ import {
 } from 'lucide-react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import api from '@/lib/api';
+
+
+
 
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon   from 'leaflet/dist/images/marker-icon.png';
@@ -150,6 +153,11 @@ function calculateFare(pickup: [number,number], dropoff: [number,number]) {
 
 type Fare = ReturnType<typeof calculateFare>;
 
+const safeCampusPOIs = Array.isArray(campusPOIs) ? campusPOIs : [];
+const safeSearchPOIs = (q: string) => {
+  try { return searchPOIs(q) ?? []; } catch { return []; }
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
@@ -222,14 +230,14 @@ const RequesterDashboard = () => {
 
   // ── POI browse panel ───────────────────────────────────────────────────────
   useEffect(() => {
-    setPoiResults(debouncedPOI.length >= 2 ? searchPOIs(debouncedPOI) : campusPOIs.slice(0, 8));
+    setPoiResults(debouncedPOI.length >= 2 ? safeSearchPOIs(debouncedPOI) : safeCampusPOIs.slice(0, 8));
   }, [debouncedPOI, poiTarget]);
 
   // ── PICKUP suggestions ────────────────────────────────────────────────────
   useEffect(() => {
     if (focusedField !== 'pickup') { setPickupSuggestions([]); return; }
     if (debouncedPickup.length < 2) { setPickupSuggestions([]); return; }
-    const poiMatches: Suggestion[] = searchPOIs(debouncedPickup).slice(0, 4).map(poi => ({ kind: 'poi', poi }));
+    const poiMatches: Suggestion[] = safeSearchPOIs(debouncedPickup).slice(0, 4).map(poi => ({ kind: 'poi', poi }));
     setPickupSuggestions(poiMatches);
     if (debouncedPickup.length >= 3) {
       searchNominatim(debouncedPickup).then(results => {
@@ -242,7 +250,7 @@ const RequesterDashboard = () => {
   useEffect(() => {
     if (focusedField !== 'dropoff') { setDropoffSuggestions([]); return; }
     if (debouncedDropoff.length < 2) { setDropoffSuggestions([]); return; }
-    const poiMatches: Suggestion[] = searchPOIs(debouncedDropoff).slice(0, 4).map(poi => ({ kind: 'poi', poi }));
+    const poiMatches: Suggestion[] = safeSearchPOIs(debouncedDropoff).slice(0, 4).map(poi => ({ kind: 'poi', poi }));
     setDropoffSuggestions(poiMatches);
     if (debouncedDropoff.length >= 3) {
       searchNominatim(debouncedDropoff).then(results => {
@@ -257,7 +265,7 @@ const RequesterDashboard = () => {
     setNearbyDispatchers([]);
     try {
       const token = localStorage.getItem('campusrun_token');
-      const res = await axios.get('/api/runner/nearby', {
+      const res = await api.get('/runner/nearby', {
         params: { lat, lng },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -321,7 +329,7 @@ const RequesterDashboard = () => {
       const formData = new FormData();
       formData.append('image', file);
       const token = localStorage.getItem('campusrun_token');
-      const res = await axios.post('/api/upload/item-image', formData, {
+      const res = await api.post('/upload/item-image', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -385,7 +393,7 @@ const RequesterDashboard = () => {
     setIsProcessing(true);
     try {
       const token = localStorage.getItem('campusrun_token');
-      const res   = await axios.post('/api/orders/create', {
+      const res   = await api.post('/orders/create', {
         item:         orderData.item,
         itemImageUrl: orderData.itemImageUrl || null,
         pickup:       { address: orderData.pickup,  lat: orderData.pickupCoords[0],  lng: orderData.pickupCoords[1] },
@@ -509,7 +517,7 @@ const RequesterDashboard = () => {
                 </Marker>
               )}
 
-              {campusPOIs.map((poi, i) => (
+              {(safeCampusPOIs ?? []).map((poi, i) => (
                 <Marker key={`${poi.id}-${i}`} position={[poi.lat, poi.lng]} icon={makePOIIcon(categoryIcons[poi.category])}>
                   <Popup>
                     <div style={{ minWidth: '140px' }}>
