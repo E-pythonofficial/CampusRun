@@ -101,9 +101,10 @@ export const register = async (req, res) => {
 }).catch(err => console.error('Verification email failed:', err.message));
 
 
-  } catch (error) {
-    console.error("❌ Registration Error:", error);
-    res.status(500).json({ status: "error", message: "Server error during registration." });
+} catch (error) {
+    console.error("❌ Registration Error MESSAGE:", error.message);
+    console.error("❌ Registration Error STACK:", error.stack);
+    res.status(500).json({ status: "error", message: error.message });
   }
 };
 
