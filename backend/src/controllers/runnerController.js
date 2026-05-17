@@ -1,5 +1,5 @@
 import prisma from '../lib/prisma.js';
-import { runAiVerification }            from '../services/ai.service.js';
+// import { runAiVerification }            from '../services/ai.service.js';
 import { sendApplicationReceivedEmail } from '../services/email.service.js';
 import { emitToAdmin, emitToAll, emitToRequester } from '../services/socket.service.js';
 import jwt from 'jsonwebtoken';
@@ -38,12 +38,8 @@ export const submitApplication = async (req, res) => {
       });
     }
 
-    let aiResult = { idCardIsReal: null, faceMatchScore: null, flagged: true };
-    try {
-      aiResult = await runAiVerification(idCardUrl, selfieUrl);
-    } catch (aiError) {
-      console.error('AI service down, flagging for manual review:', aiError.message);
-    }
+    // AI verification disabled — flagged for manual admin review
+    const aiResult = { idCardIsReal: null, faceMatchScore: null, flagged: true };
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
