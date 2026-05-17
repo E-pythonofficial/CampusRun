@@ -18,7 +18,8 @@ const storage = new CloudinaryStorage({
     folder: file.fieldname === 'idCard'
       ? 'campusrun/id-cards'
       : 'campusrun/selfies',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'],
+    format: 'jpg',
     transformation: [{ width: 1000, quality: 'auto' }],
   }),
 });
