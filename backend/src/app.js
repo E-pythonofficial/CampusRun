@@ -22,6 +22,8 @@ const httpServer = http.createServer(app);
 // ── Shared CORS Logic ────────────────────────────────────────────────────────
 export const allowedOrigins = [
   process.env.CLIENT_URL,
+  'https://campusrun.up.railway.app',
+  'https://just-dedication-production-1319.up.railway.app',
   'http://localhost:8080',
   'http://localhost:5000',
 ].filter(Boolean);
