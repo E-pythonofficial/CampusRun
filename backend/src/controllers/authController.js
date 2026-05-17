@@ -9,6 +9,8 @@ const generateToken = (id) => {
 };
 
 export const register = async (req, res) => {
+  console.log("🚀 Register hit — body keys:", Object.keys(req.body));
+  console.log("🚀 Files received:", JSON.stringify(Object.keys(req.files || {})));
   try {
     console.log("Data received:", req.body);
 
