@@ -67,8 +67,10 @@ export const submitApplication = async (req, res) => {
       },
     });
 
+    // Fire and forget — don't await these, they slow down the response
     emitToAdmin('admin:new_application', updatedUser);
-    await sendApplicationReceivedEmail(updatedUser.email, updatedUser.fullName);
+    sendApplicationReceivedEmail(updatedUser.email, updatedUser.fullName)
+    .catch(err => console.error('Application email failed:', err.message));
 
     return res.status(200).json({
       message:           'Application submitted. Check your email for next steps.',

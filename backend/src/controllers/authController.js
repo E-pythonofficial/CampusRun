@@ -47,6 +47,9 @@ export const register = async (req, res) => {
     const hashedPassword    = await bcrypt.hash(password, 12);
     const verificationToken = crypto.randomBytes(32).toString('hex');
 
+    console.log("About to create user with role:", role, "userType:", userType);
+    console.log("matricNumber:", normalizedMatric);
+
     const newUser = await prisma.user.create({
       data: {
         email:           normalizedEmail,
