@@ -620,9 +620,13 @@ const OfflineOverlay = ({ onGoOnline, isDark, stats }: { onGoOnline: () => void;
         </div>
       </div>
       <h2 className="text-3xl font-black mb-2 tracking-tight" style={{ color: t.textPrimary }}>You're Offline</h2>
-      <p className="text-sm font-medium text-center max-w-xs mb-10 leading-relaxed" style={{ color: t.textSecondary }}>
-        Go online to start receiving delivery requests from students on campus.
-      </p>
+      <p className="text-sm font-medium text-center max-w-xs mb-10 leading-relaxed" 
+      style={{ color: t.textSecondary }}>
+        Go online to start receiving deliveries.<br/>
+        <span className="text-[11px] opacity-60">
+        Toggle "Available" to get SMS alerts even when the app is closed.
+        </span>
+        </p>
       {stats && (
         <div className="flex gap-6 mb-12">
           {[
@@ -775,6 +779,7 @@ const ChatRoom = ({
 // ─── MAIN DASHBOARD ───────────────────────────────────────────────────────────
 const DispatcherDashboard = () => {
   const [activeTab,        setActiveTab]        = useState('home');
+  const [isAvailable,      setIsAvailable]      = useState(false);
   const [isOnline,         setIsOnline]         = useState(false);
   const [deliveryStep,     setDeliveryStep]     = useState<'IDLE' | 'ARRIVING' | 'PICKED_UP'>('IDLE');
   const [chatOpen,         setChatOpen]         = useState(false);
@@ -801,6 +806,27 @@ const DispatcherDashboard = () => {
   const [dailyEarnings,   setDailyEarnings]   = useState<DailyEarning[]>([]);
   const [daysSincePayout, setDaysSincePayout] = useState(0);
   const weeklyTotal = (dailyEarnings ?? []).reduce((s, d) => s + d.amount, 0);
+
+
+  // ── Load availability on mount ────────────────────────────────────────────────
+useEffect(() => {
+  api.get('/runner/stats')
+    .then(r => {
+      setIsAvailable(r.data.isAvailable ?? false);
+    })
+    .catch(() => {});
+}, []);
+
+// ── Toggle availability (server persists this) ────────────────────────────────
+const handleToggleAvailability = async () => {
+  const newState = !isAvailable;
+  setIsAvailable(newState);
+  try {
+    await api.post('/runner/availability', { isAvailable: newState });
+  } catch {
+    setIsAvailable(!newState); // revert on error
+  }
+};
 
   
   const fetchDashboardData = useCallback(async () => {
@@ -961,7 +987,10 @@ const DispatcherDashboard = () => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {!isOnline && <OfflineOverlay onGoOnline={() => setIsOnline(true)} isDark={isDark} stats={stats} />}
+        {!isOnline && <OfflineOverlay onGoOnline={() => {setIsOnline(true);      // ← marks app as active
+setIsAvailable(true);   // ← also make available
+    api.post('/runner/availability', { isAvailable: true }).catch(() => {});
+  }}  isDark={isDark} stats={stats} />}
       </AnimatePresence>
       <AnimatePresence>
         {deliveryComplete && !chatOpen && (
@@ -975,28 +1004,37 @@ const DispatcherDashboard = () => {
       </AnimatePresence>
 
       {/* Header */}
-      <header className="px-6 py-4 flex justify-between items-center border-b backdrop-blur-xl z-20"
+      {/* Header */}
+        <header className="px-6 py-4 flex justify-between items-center border-b backdrop-blur-xl z-20"
         style={{ background: t.headerBg, borderColor: t.divider }}>
         <h1 className="font-black text-xl tracking-tight" style={{ color: t.textPrimary }}>
-          CAMPUS<span style={{ color: t.orange }}>RUN</span>
+            CAMPUS<span style={{ color: t.orange }}>RUN</span>
         </h1>
         <div className="flex items-center gap-3">
-          <ThemeToggle isDark={isDark} onToggle={() => setIsDark(d => !d)} />
-          <div className="flex items-center gap-3 px-3 py-1.5 rounded-full border"
-            style={{ background: 'transparent', borderColor: t.cardBorder }}>
-            <span className="text-[10px] font-black uppercase tracking-widest"
-              style={{ color: isOnline ? t.green : t.textSecondary }}>
-              {isOnline ? 'Online' : 'Offline'}
-            </span>
-            <button onClick={() => setIsOnline(!isOnline)}
-              className="w-10 h-5 rounded-full relative transition-colors duration-500"
-              style={{ background: isOnline ? t.green : t.divider }}>
-              <motion.div animate={{ x: isOnline ? 20 : 2 }}
+        <ThemeToggle isDark={isDark} onToggle={() => setIsDark(d => !d)} />
+
+    {/* ── Available toggle (persists) ── */}
+        <div className="flex flex-col items-center gap-0.5">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border"
+           style={{ background: 'transparent', borderColor: t.cardBorder }}>
+            <span className="text-[9px] font-black uppercase tracking-widest"
+              style={{ color: isAvailable ? '#22C55E' : t.textSecondary }}>
+              {isAvailable ? 'Available' : 'Off Duty'}
+                </span>
+                <button
+               onClick={handleToggleAvailability}
+                className="w-10 h-5 rounded-full relative transition-colors duration-500"
+                style={{ background: isAvailable ? '#22C55E' : t.divider }}>
+                <motion.div animate={{ x: isAvailable ? 20 : 2 }}
                 className="absolute top-1 w-3 h-3 bg-white rounded-full shadow-xl" />
-            </button>
-          </div>
+                </button>
+            </div>
+          <span className="text-[8px]" style={{ color: t.textMuted }}>
+            {isAvailable ? 'SMS alerts on' : 'No alerts'}
+          </span>
         </div>
-      </header>
+      </div>
+    </header>
 
       {/* Main */}
       <main className="flex-1 relative overflow-y-auto pb-32">

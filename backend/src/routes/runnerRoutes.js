@@ -25,6 +25,7 @@ import {
   getPaymentMethod,
   getBanks,
   verifyBankAccount,
+  toggleAvailability
 } from '../controllers/runnerController.js';
 
 import { withdrawEarnings, getPayoutHistory } from '../controllers/payoutController.js';
@@ -70,5 +71,7 @@ router.post('/bank-details', protect, saveBankDetails);
 
 router.post('/withdraw',      protect,    withdrawEarnings);   // ← match your existing name
 router.get('/payout-history', protect,    getPayoutHistory);
+
+router.post('/availability', protect, toggleAvailability);
 
 export default router;

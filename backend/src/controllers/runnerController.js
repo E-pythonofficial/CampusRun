@@ -724,3 +724,27 @@ export const verifyBankAccount = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+
+// ── Toggle availability (persists even when app closed) ──────────────────────
+// POST /api/runner/availability
+export const toggleAvailability = async (req, res) => {
+  try {
+    const { isAvailable } = req.body;
+    const runnerId = req.user.id;
+
+    await prisma.user.update({
+      where: { id: runnerId },
+      data:  { isAvailable },
+    });
+
+    return res.json({ 
+      message: isAvailable 
+        ? 'You are now available for orders' 
+        : 'You are now unavailable',
+      isAvailable 
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};

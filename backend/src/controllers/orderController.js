@@ -64,6 +64,8 @@ export const createOrder = async (req, res) => {
       },
     });
 
+    notifyAvailableRunners(newOrder); 
+
     return res.status(200).json({
       url:     paystackRes.data.data.authorization_url,
       orderId: newOrder.id,

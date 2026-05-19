@@ -91,6 +91,7 @@ model User {
   suspensionReason String?   @db.Text
 
   // 🆕 Dispatcher Live Location & Online Status
+  isAvialable   Boolean @default(false)
   isOnline      Boolean @default(false)
   lastLat       Float?
   lastLng       Float?
