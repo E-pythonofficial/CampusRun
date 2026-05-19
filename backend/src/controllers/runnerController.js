@@ -381,31 +381,39 @@ export const saveBankDetails = async (req, res) => {
 
 // ── Get nearby online runners ──────────────────────────────────────────────────
 // Route: GET /api/runner/nearby?lat=x&lng=y
-// Returns approved runners who are currently online with a known location
+// Returns approved runners who are currently online with a known locationd' });\
+
 export const getNearbyRunners = async (req, res) => {
   try {
     const { lat, lng } = req.query;
-
-    if (!lat || !lng) {
-      return res.status(400).json({ message: 'lat and lng query params are required' });
-    }
 
     const runners = await prisma.user.findMany({
       where: {
         role:       'DISPATCHER',
         isApproved: true,
         isOnline:   true,
+        lastLat:    { not: null },
+        lastLng:    { not: null },
       },
       select: {
         id:       true,
         fullName: true,
         lastLat:  true,
         lastLng:  true,
+        lastSeenAt: true,
       },
     });
 
     const result = runners
-      .filter(r => r.lastLat !== null && r.lastLng !== null)
+      .filter(r => 
+        r.lastLat !== null && 
+        r.lastLng !== null &&
+        r.lastLat !== 0 &&    // ← exclude 0,0
+        r.lastLng !== 0 &&
+        // ✅ Only show runners seen in last 2 minutes
+        r.lastSeenAt && 
+        (Date.now() - new Date(r.lastSeenAt).getTime()) < 2 * 60 * 1000
+      )
       .map(r => ({
         id:   r.id,
         name: r.fullName,
@@ -420,6 +428,7 @@ export const getNearbyRunners = async (req, res) => {
   }
 };
 
+
 // ── Update runner's live location + online status ──────────────────────────────
 // Route: POST /api/runner/location
 // Called by the runner app when they toggle online/offline or move
@@ -431,11 +440,12 @@ export const updateRunnerLocation = async (req, res) => {
     await prisma.user.update({
       where: { id: runnerId },
       data: {
-        lastLat:  lat      ?? undefined,
-        lastLng:  lng      ?? undefined,
-        isOnline: isOnline ?? undefined,
-      },
-    });
+        lastLat:   lat      ?? undefined,
+        lastLng:   lng      ?? undefined,
+        isOnline:  isOnline ?? undefined,
+        lastSeenAt: new Date(), // ← ADD THIS
+  },
+});
 
     return res.status(200).json({ message: 'Location updated' });
   } catch (error) {

@@ -109,3 +109,15 @@
     box-shadow: 0 0 10px hsla(26, 100%, 50%, 0.2);
   }
 }
+
+@media (max-width: 768px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12px;
+  }
+}

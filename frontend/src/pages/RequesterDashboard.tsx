@@ -283,43 +283,52 @@ const RequesterDashboard = () => {
    if (!userLocation) return;
    const interval = setInterval(() => {
            fetchNearbyDispatchers(userLocation[0], userLocation[1]);
-         }, 30000);
+         }, 10000);
          return () => clearInterval(interval);
        }, [userLocation, fetchNearbyDispatchers]);
 
   // ── GPS — aggressive, uses watchPosition for accuracy ────────────────────
-  const requestLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation not supported by your browser.');
-      fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
-      return;
-    }
 
-    // First, get a quick fix with low accuracy
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const loc: [number,number] = [pos.coords.latitude, pos.coords.longitude];
-        setLocationError(null);
-        setMapCenter(loc);
-        setUserLocation(loc);
+  const requestLocation = useCallback(() => {
+  if (!navigator.geolocation) {
+    setLocationError('Geolocation not supported by your browser.');
+    fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
+    return;
+  }
+
+  // ✅ Watch position continuously — blue dot moves with user
+  const watchId = navigator.geolocation.watchPosition(
+    async (pos) => {
+      const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+      setLocationError(null);
+      setMapCenter(loc);
+      setUserLocation(loc);
+
+      // Only fetch address and nearby dispatchers on first fix
+      if (!userLocation) {
         fetchNearbyDispatchers(loc[0], loc[1]);
         const address = await reverseGeocode(loc[0], loc[1]);
         setPickupQuery(address);
         setOrderData(prev => ({ ...prev, pickup: address, pickupCoords: loc }));
-      },
-      (err) => {
-        console.error('Location error:', err);
-        if      (err.code === 1) setLocationError('Location access denied. Please enable location permissions and retry.');
-        else if (err.code === 2) setLocationError('Could not detect your position. Search manually.');
-        else                     setLocationError('Location timed out. Search manually or retry.');
-        fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
-      },
-      // High accuracy, generous timeout
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-    );
-  }, [fetchNearbyDispatchers]);
+      }
+    },
+    (err) => {
+      console.error('Location error:', err);
+      if      (err.code === 1) setLocationError('Location access denied. Please enable location permissions and retry.');
+      else if (err.code === 2) setLocationError('Could not detect your position. Search manually.');
+      else                     setLocationError('Location timed out. Search manually or retry.');
+      fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+  );
+
+  // Cleanup watch on unmount
+  return () => navigator.geolocation.clearWatch(watchId);
+}, [fetchNearbyDispatchers, userLocation]);
 
   useEffect(() => { setMounted(true); requestLocation(); }, [requestLocation]);
+
+  
 
   // ── Image upload to Cloudinary via backend ────────────────────────────────
   const handleImageFile = async (file: File) => {
@@ -502,11 +511,18 @@ const RequesterDashboard = () => {
               )}
 
               {/* Real dispatchers only — no mock data */}
-              {!activeRun && nearbyDispatchers.map(d => (
-                <Marker key={d.id} position={[d.lat, d.lng]} icon={runnerPinIcon(d.name)}>
-                  <Popup>{d.name} — Runner</Popup>
-                </Marker>
-              ))}
+              {!activeRun && nearbyDispatchers .filter(d => 
+              d.lat !== 0 && d.lng !== 0 &&        // ← filter out 0,0 coordinates
+              d.lat !== null && d.lng !== null &&   // ← filter out nulls
+              Math.abs(d.lat) <= 90 &&             // ← valid lat range
+              Math.abs(d.lng) <= 180               // ← valid lng range
+              )
+              .map(d => (
+              <Marker key={d.id} position={[d.lat, d.lng]} icon={runnerPinIcon(d.name)}>
+              <Popup>{d.name} — Runner</Popup>
+              </Marker>
+            ))
+            }
 
               {activeRun && (
                 <Marker
