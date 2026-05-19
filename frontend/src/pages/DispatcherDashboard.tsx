@@ -808,14 +808,44 @@ const DispatcherDashboard = () => {
   const weeklyTotal = (dailyEarnings ?? []).reduce((s, d) => s + d.amount, 0);
 
 
+
+
   // ── Load availability on mount ────────────────────────────────────────────────
 useEffect(() => {
   api.get('/runner/stats')
     .then(r => {
-      setIsAvailable(r.data.isAvailable ?? false);
+      setIsAvailable(r.data.isAvailable ?? true);
     })
     .catch(() => {});
 }, []);
+
+
+// Auto-logout after 2 minutes of the page being hidden (app backgrounded/closed)
+useEffect(() => {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'hidden') {
+      // Start 2-minute countdown
+      timer = setTimeout(() => {
+        logout();
+        navigate('/login');
+      }, 2 * 60 * 1000); // 2 minutes
+    } else {
+      // User came back — cancel the timer
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    }
+  };
+
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  return () => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    if (timer) clearTimeout(timer);
+  };
+}, [logout, navigate]);
 
 // ── Toggle availability (server persists this) ────────────────────────────────
 const handleToggleAvailability = async () => {
@@ -984,15 +1014,7 @@ const handleToggleAvailability = async () => {
             </button>
           </motion.div>
         )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {!isOnline && <OfflineOverlay onGoOnline={() => {setIsOnline(true);      // ← marks app as active
-setIsAvailable(true);   // ← also make available
-    api.post('/runner/availability', { isAvailable: true }).catch(() => {});
-  }}  isDark={isDark} stats={stats} />}
-      </AnimatePresence>
-      <AnimatePresence>
+      </AnimatePresence>     <AnimatePresence>
         {deliveryComplete && !chatOpen && (
           <DeliveryCompleteScreen fee={currentJob?.fee ?? 0} onDismiss={handleDismissComplete} isDark={isDark} />
         )}
@@ -1014,27 +1036,18 @@ setIsAvailable(true);   // ← also make available
         <ThemeToggle isDark={isDark} onToggle={() => setIsDark(d => !d)} />
 
     {/* ── Available toggle (persists) ── */}
-        <div className="flex flex-col items-center gap-0.5">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border"
-           style={{ background: 'transparent', borderColor: t.cardBorder }}>
-            <span className="text-[9px] font-black uppercase tracking-widest"
-              style={{ color: isAvailable ? '#22C55E' : t.textSecondary }}>
-              {isAvailable ? 'Available' : 'Off Duty'}
-                </span>
-                <button
-               onClick={handleToggleAvailability}
-                className="w-10 h-5 rounded-full relative transition-colors duration-500"
-                style={{ background: isAvailable ? '#22C55E' : t.divider }}>
-                <motion.div animate={{ x: isAvailable ? 20 : 2 }}
-                className="absolute top-1 w-3 h-3 bg-white rounded-full shadow-xl" />
-                </button>
+          <div className="flex flex-col items-center gap-0.5">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border"
+            style={{ background: 'transparent', borderColor: t.cardBorder }}>
+            <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#22C55E' }} />
+            <span className="text-[9px] font-black uppercase tracking-widest" style={{ color: '#22C55E' }}>
+             SMS Alerts On
+            </span>
             </div>
-          <span className="text-[8px]" style={{ color: t.textMuted }}>
-            {isAvailable ? 'SMS alerts on' : 'No alerts'}
-          </span>
-        </div>
-      </div>
-    </header>
+            <span className="text-[8px]" style={{ color: t.textMuted }}>Always available</span>
+            </div>
+            </div>
+      </header>
 
       {/* Main */}
       <main className="flex-1 relative overflow-y-auto pb-32">
@@ -1042,91 +1055,177 @@ setIsAvailable(true);   // ← also make available
 
           {/* RUN TAB */}
           {activeTab === 'home' && (
-            <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col">
-              <div className="flex-1 relative overflow-hidden min-h-[70vh]" style={{ background: t.pageBg }}>
-                <div className="absolute inset-0 opacity-5 pointer-events-none">
-                  <div className="w-full h-full bg-[radial-gradient(#888888_1px,transparent_1px)] [background-size:32px_32px]" />
-                </div>
-                <div className="absolute inset-0 p-6 flex flex-col justify-end pointer-events-none">
-                  {isOnline && !currentJob && (
-                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-                      className="p-6 rounded-[2.5rem] flex items-center gap-4 text-white pointer-events-auto shadow-2xl"
-                      style={{ background: t.orange }}>
-                      <div className="bg-white/20 p-4 rounded-2xl animate-bounce"><Package size={28} /></div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase opacity-80 tracking-widest">Scanning Campus...</p>
-                        <p className="font-black text-xl">Searching for runs</p>
-                      </div>
-                    </motion.div>
-                  )}
-                  {isOnline && currentJob && (
-                    <motion.div layoutId="active-job" className="p-6 rounded-[2.5rem] border shadow-2xl pointer-events-auto"
-                      style={{ background: t.cardBg, borderColor: t.activeJobBorder }}>
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest w-fit"
-                            style={{ background: `${t.orange}22`, color: t.orange }}>Active Task</span>
-                          <p className="font-black text-lg mt-1" style={{ color: t.textPrimary }}>{currentJob.itemDescription}</p>
-                        </div>
-                        <div className="flex items-center gap-1 font-bold text-xs px-3 py-1 rounded-full"
-                          style={{ color: t.green, background: `${t.green}18` }}>
-                          <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: t.green }} />
-                          {stepLabel}
-                        </div>
-                      </div>
-                      <div className="space-y-5 mb-6 relative px-2">
-                        <div className="absolute left-[15px] top-3 bottom-3 w-[2px] opacity-20"
-                          style={{ background: `linear-gradient(to bottom, ${t.orange}, ${t.green})` }} />
-                        <div className="flex gap-4 items-center">
-                          <div className="w-4 h-4 rounded-full z-10 flex items-center justify-center"
-                            style={{ background: deliveryStep !== 'IDLE' ? t.green : t.orange }}>
-                            {deliveryStep !== 'IDLE' && <CheckCircle2 size={12} className="text-white" />}
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-[10px] uppercase font-black" style={{ color: t.textSecondary }}>Pick up</p>
-                            <p className="font-bold text-sm" style={{ color: t.textPrimary }}>{currentJob.pickupLocation}</p>
-                          </div>
-                          <MapPin size={16} style={{ color: t.orange }} />
-                        </div>
-                        <div className="flex gap-4 items-center">
-                          <div className="w-4 h-4 rounded-full border-2 z-10"
-                            style={{ borderColor: t.pageBg, background: deliveryStep === 'PICKED_UP' ? t.green : t.divider }} />
-                          <div className="flex-1">
-                            <p className="text-[10px] uppercase font-black" style={{ color: t.textSecondary }}>Drop off</p>
-                            <p className="font-bold text-sm" style={{ color: t.textPrimary }}>{currentJob.dropoffLocation}</p>
-                          </div>
-                          <Navigation2 size={16} style={{ color: t.textSecondary }} />
-                        </div>
-                      </div>
-                      <div className="rounded-3xl p-4 mb-6 border flex flex-col items-center"
-                        style={{ background: t.pinBg, borderColor: t.cardBorder }}>
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: t.textMuted }}>
-                          Security Handshake PIN
-                        </span>
-                        <span className="text-4xl font-black tracking-[0.3em]" style={{ color: t.orange }}>
-                          {currentJob.pin}
-                        </span>
-                      </div>
-                      <div className="flex gap-3">
-                        <Button onClick={handleStepUpdate}
-                          className="flex-1 text-white py-7 rounded-2xl font-black"
-                          style={{ background: t.orange, boxShadow: `0 8px 24px ${t.orange}44` }}>
-                          {deliveryStep === 'IDLE'      && 'Arrived at Pickup'}
-                          {deliveryStep === 'ARRIVING'  && 'Confirm Pickup'}
-                          {deliveryStep === 'PICKED_UP' && 'Complete Delivery'}
-                        </Button>
-                        <Button onClick={() => setChatOpen(true)} variant="outline"
-                          className="w-16 h-16 rounded-2xl transition-all"
-                          style={{ borderColor: t.cardBorder, background: t.whiteFaint, color: t.orange }}>
-                          <MessageSquare size={24} />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
+  <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col">
+    <div className="flex-1 relative overflow-hidden min-h-[70vh]" style={{ background: t.pageBg }}>
+      <div className="absolute inset-0 opacity-5 pointer-events-none">
+        <div className="w-full h-full bg-[radial-gradient(#888888_1px,transparent_1px)] [background-size:32px_32px]" />
+      </div>
+
+      <div className="absolute inset-0 p-6 flex flex-col justify-center pointer-events-none">
+
+        {/* ── OFFLINE: prominent Go Online card ── */}
+        {!isOnline && !currentJob && (
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+            className="pointer-events-auto mx-4"
+          >
+            <div className="flex justify-center mb-8 relative">
+              <motion.div
+                animate={{ scale: [1, 1.5, 1], opacity: [0.4, 0, 0.4] }}
+                transition={{ duration: 2.5, repeat: Infinity }}
+                className="absolute w-32 h-32 rounded-full"
+                style={{ background: `${t.orange}33`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+              />
+              <div className="w-24 h-24 rounded-full flex items-center justify-center border shadow-2xl"
+                style={{ background: t.cardBg, borderColor: t.cardBorder }}>
+                <WifiOff size={36} style={{ color: t.textMuted }} />
               </div>
-            </motion.div>
-          )}
+            </div>
+            <h2 className="text-2xl font-black text-center mb-2" style={{ color: t.textPrimary }}>You're Offline</h2>
+            <p className="text-sm text-center mb-8 leading-relaxed" style={{ color: t.textSecondary }}>
+              Tap below to go online and start receiving delivery requests.
+            </p>
+            {stats && (
+              <div className="flex justify-center gap-8 mb-8">
+                {[
+                  { label: 'Total Runs',  value: stats.totalAccepted },
+                  { label: 'Reliability', value: `${stats.reliability}%` },
+                  { label: 'Rating',      value: `${stats.averageRating}★` },
+                ].map((s, i) => (
+                  <div key={i} className="text-center">
+                    <div className="text-lg font-black" style={{ color: t.orange }}>{s.value}</div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold" style={{ color: t.textMuted }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <motion.button
+              whileTap={{ scale: 0.96 }}
+              onClick={() => setIsOnline(true)}
+              className="w-full py-6 rounded-[2rem] font-black text-xl text-white flex items-center justify-center gap-3 shadow-2xl"
+              style={{ background: t.orange, boxShadow: `0 20px 50px ${t.orange}55` }}
+            >
+              <Wifi size={24} /> Go Online
+            </motion.button>
+          </motion.div>
+        )}
+
+        {/* ── ONLINE, no job: Scanning card ── */}
+        {isOnline && !currentJob && (
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className="pointer-events-auto mx-4"
+          >
+            <div className="flex justify-center mb-6 relative">
+              <motion.div
+                animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute w-28 h-28 rounded-full"
+                style={{ background: `${t.orange}44`, top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
+              />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-2xl"
+                style={{ background: t.orange }}>
+                <Package size={32} className="text-white" />
+              </div>
+            </div>
+            <div className="p-8 rounded-[2.5rem] text-center border shadow-xl"
+              style={{ background: t.cardBg, borderColor: `${t.orange}30` }}>
+              <motion.div
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-[10px] font-black uppercase tracking-[0.3em] mb-2"
+                style={{ color: t.orange }}
+              >
+                ● Live
+              </motion.div>
+              <p className="font-black text-2xl mb-1" style={{ color: t.textPrimary }}>Scanning Campus...</p>
+              <p className="text-sm" style={{ color: t.textSecondary }}>
+                You'll be notified the moment a delivery comes in near you.
+              </p>
+              <button
+                onClick={() => setIsOnline(false)}
+                className="mt-6 px-6 py-2 rounded-full text-xs font-bold border transition-all"
+                style={{ borderColor: t.cardBorder, color: t.textMuted, background: t.whiteFaint }}
+              >
+                Go Offline
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── ONLINE, active job ── */}
+        {isOnline && currentJob && (
+          <motion.div layoutId="active-job" className="p-6 rounded-[2.5rem] border shadow-2xl pointer-events-auto"
+            style={{ background: t.cardBg, borderColor: t.activeJobBorder }}>
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest w-fit"
+                  style={{ background: `${t.orange}22`, color: t.orange }}>Active Task</span>
+                <p className="font-black text-lg mt-1" style={{ color: t.textPrimary }}>{currentJob.itemDescription}</p>
+              </div>
+              <div className="flex items-center gap-1 font-bold text-xs px-3 py-1 rounded-full"
+                style={{ color: t.green, background: `${t.green}18` }}>
+                <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: t.green }} />
+                {stepLabel}
+              </div>
+            </div>
+            <div className="space-y-5 mb-6 relative px-2">
+              <div className="absolute left-[15px] top-3 bottom-3 w-[2px] opacity-20"
+                style={{ background: `linear-gradient(to bottom, ${t.orange}, ${t.green})` }} />
+              <div className="flex gap-4 items-center">
+                <div className="w-4 h-4 rounded-full z-10 flex items-center justify-center"
+                  style={{ background: deliveryStep !== 'IDLE' ? t.green : t.orange }}>
+                  {deliveryStep !== 'IDLE' && <CheckCircle2 size={12} className="text-white" />}
+                </div>
+                <div className="flex-1">
+                  <p className="text-[10px] uppercase font-black" style={{ color: t.textSecondary }}>Pick up</p>
+                  <p className="font-bold text-sm" style={{ color: t.textPrimary }}>{currentJob.pickupLocation}</p>
+                </div>
+                <MapPin size={16} style={{ color: t.orange }} />
+              </div>
+              <div className="flex gap-4 items-center">
+                <div className="w-4 h-4 rounded-full border-2 z-10"
+                  style={{ borderColor: t.pageBg, background: deliveryStep === 'PICKED_UP' ? t.green : t.divider }} />
+                <div className="flex-1">
+                  <p className="text-[10px] uppercase font-black" style={{ color: t.textSecondary }}>Drop off</p>
+                  <p className="font-bold text-sm" style={{ color: t.textPrimary }}>{currentJob.dropoffLocation}</p>
+                </div>
+                <Navigation2 size={16} style={{ color: t.textSecondary }} />
+              </div>
+            </div>
+            <div className="rounded-3xl p-4 mb-6 border flex flex-col items-center"
+              style={{ background: t.pinBg, borderColor: t.cardBorder }}>
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] mb-1" style={{ color: t.textMuted }}>
+                Security Handshake PIN
+              </span>
+              <span className="text-4xl font-black tracking-[0.3em]" style={{ color: t.orange }}>
+                {currentJob.pin}
+              </span>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleStepUpdate}
+                className="flex-1 text-white py-7 rounded-2xl font-black"
+                style={{ background: t.orange, boxShadow: `0 8px 24px ${t.orange}44` }}>
+                {deliveryStep === 'IDLE'      && 'Arrived at Pickup'}
+                {deliveryStep === 'ARRIVING'  && 'Confirm Pickup'}
+                {deliveryStep === 'PICKED_UP' && 'Complete Delivery'}
+              </Button>
+              <Button onClick={() => setChatOpen(true)} variant="outline"
+                className="w-16 h-16 rounded-2xl transition-all"
+                style={{ borderColor: t.cardBorder, background: t.whiteFaint, color: t.orange }}>
+                <MessageSquare size={24} />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
+      </div>
+    </div>
+  </motion.div>
+)}
 
           {/* TASKS TAB */}
           {activeTab === 'tasks' && (

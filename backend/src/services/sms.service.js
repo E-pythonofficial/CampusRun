@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const TERMII_BASE = 'https://api.ng.termii.com/api';
+const TERMII_BASE = 'https://v3.api.termii.com/api';
 
 export const sendSMS = async (phone, message) => {
   try {
