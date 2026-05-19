@@ -288,24 +288,34 @@ const RequesterDashboard = () => {
        }, [userLocation, fetchNearbyDispatchers]);
 
   // ── GPS — aggressive, uses watchPosition for accuracy ────────────────────
+// ── GPS — use a ref to track first fix ───────────────────────────────────────
+const hasFirstFix = useRef(false);
+const watchIdRef  = useRef<number | null>(null);
 
-  const requestLocation = useCallback(() => {
+useEffect(() => {
+  setMounted(true);
+
   if (!navigator.geolocation) {
     setLocationError('Geolocation not supported by your browser.');
     fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
     return;
   }
 
-  // ✅ Watch position continuously — blue dot moves with user
-  const watchId = navigator.geolocation.watchPosition(
+  // Clear any existing watch
+  if (watchIdRef.current !== null) {
+    navigator.geolocation.clearWatch(watchIdRef.current);
+  }
+
+  watchIdRef.current = navigator.geolocation.watchPosition(
     async (pos) => {
       const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
       setLocationError(null);
       setMapCenter(loc);
       setUserLocation(loc);
 
-      // Only fetch address and nearby dispatchers on first fix
-      if (!userLocation) {
+      // Only fetch address + nearby on FIRST fix
+      if (!hasFirstFix.current) {
+        hasFirstFix.current = true;
         fetchNearbyDispatchers(loc[0], loc[1]);
         const address = await reverseGeocode(loc[0], loc[1]);
         setPickupQuery(address);
@@ -322,13 +332,15 @@ const RequesterDashboard = () => {
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
   );
 
-  // Cleanup watch on unmount
-  return () => navigator.geolocation.clearWatch(watchId);
-}, [fetchNearbyDispatchers, userLocation]);
+  // Cleanup on unmount
+  return () => {
+    if (watchIdRef.current !== null) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+  };
+}, [fetchNearbyDispatchers]); // ← only depends on fetchNearbyDispatchers
 
-  useEffect(() => { setMounted(true); requestLocation(); }, [requestLocation]);
-
-  
 
   // ── Image upload to Cloudinary via backend ────────────────────────────────
   const handleImageFile = async (file: File) => {
@@ -556,13 +568,13 @@ const RequesterDashboard = () => {
                 </motion.div>
               )}
             </AnimatePresence>
-
             {locationError && !userLocation && (
-              <button onClick={requestLocation}
-                className="absolute bottom-32 right-4 z-50 bg-white shadow-xl rounded-2xl px-4 py-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-700">
-                <MapPin size={14} className="text-orange-500" /> Retry Location
+            <button onClick={() => window.location.reload()}  // ← reload page to retry
+              className="absolute bottom-32 right-4 z-50 bg-white shadow-xl rounded-2xl px-4 py-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-700">
+              <MapPin size={14} className="text-orange-500" /> Retry Location
               </button>
             )}
+
           </>
         ) : (
           <div className={`w-full h-full flex items-center justify-center ${themeClass.bg}`}>
