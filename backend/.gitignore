@@ -9,3 +9,5 @@ backend/.env
 
 /src/generated/prisma
 .env
+
+campusrun_backup.dump
