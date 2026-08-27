@@ -949,14 +949,14 @@ const handleToggleAvailability = async () => {
     };
   }, [isOnline, startLocationTracking, stopLocationTracking]);
 
-  useEffect(() => {
-    const handleUnload = () => {
-      const token = localStorage.getItem('campusrun_token');
-      navigator.sendBeacon('/api/runner/location-unload', new Blob([JSON.stringify({ lat: 0, lng: 0, isOnline: false, token })], { type: 'application/json' }));
-    };
-    window.addEventListener('beforeunload', handleUnload);
-    return () => window.removeEventListener('beforeunload', handleUnload);
-  }, []);
+  // useEffect(() => {
+    // const handleUnload = () => {
+      // const token = localStorage.getItem('campusrun_token');
+      // navigator.sendBeacon('/api/runner/location-unload', new Blob([JSON.stringify({ lat: 0, lng: 0, isOnline: false, token })], { type: 'application/json' }));
+    // };
+    // window.addEventListener('beforeunload', handleUnload);
+    // return () => window.removeEventListener('beforeunload', handleUnload);
+  // }, []);
 
   const t = T(isDark);
 

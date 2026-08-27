@@ -97,10 +97,10 @@ const Landing = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6">
-                <Zap size={14} className="text-primary" />
-                <span className="text-xs font-medium text-primary uppercase tracking-wider">Campus-Powered Delivery</span>
-              </div>
+              {/* <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5 mb-6"> */}
+                {/* <Zap size={14} className="text-primary" /> */}
+                {/* <span className="text-xs font-medium text-primary uppercase tracking-wider">Campus-Powered Delivery</span> */}
+              {/* </div> */}
 
               {/* Applied font-major for Roboto Serif Italic */}
               <h1 className="font-major text-6xl md:text-8xl leading-tight mb-6 tracking-tight">
