@@ -9,6 +9,7 @@ import uploadRoutes from './routes/uploadRoutes.js';
 
 // Route Imports
 import authRoutes from './routes/auth.js';
+// import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import runnerRoutes from './routes/runnerRoutes.js';
