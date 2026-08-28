@@ -90,28 +90,28 @@ export const register = async (req, res) => {
 });
 
 // Send email in background - doesn't block response
-  sendEmail({
-    email: newUser.email,
-    subject: 'Verify your CampusRun Account',
-    html: `
+await sendEmail({
+  email: newUser.email,
+  subject: 'Verify your CampusRun Account',
+  html: `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
       <h2 style="color:#F97316;">Welcome to CampusRun!</h2>
       <p>Please verify your email by clicking the link below:</p>
-      <a href="${verificationUrl}"
-         style="display:inline-block;background:#F97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">
+
+      <a
+        href="${verificationUrl}"
+        style="display:inline-block;background:#F97316;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;"
+      >
         Verify Email Address
       </a>
     </div>
   `,
-}).catch(err => console.error('Verification email failed:', err.message));
+});
 
-
-} catch (error) {
-    console.error("❌ Registration Error MESSAGE:", error.message);
-    console.error("❌ Registration Error STACK:", error.stack);
-    res.status(500).json({ status: "error", message: error.message });
-  }
-};
+return res.status(201).json({
+  status: "success",
+  message: "Registration successful! Check your email to verify.",
+});
 
 export const loginUser = async (req, res) => {
   try {
