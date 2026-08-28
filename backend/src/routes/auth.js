@@ -20,21 +20,7 @@ const router = express.Router();
  * @route   POST /api/auth/register
  */
 
-router.post('/register', 
-  (req, res, next) => {
-    uploadDispatcherDocs(req, res, (err) => {
-      if (err) {
-        console.error('❌ Multer/Cloudinary upload error:', err.message);
-        return res.status(500).json({ 
-          status: 'error', 
-          message: `Upload failed: ${err.message}` 
-        });
-      }
-      next();
-    });
-  },
-  register
-);
+router.post('/register',register);
 
 /**
  * @route   POST /api/auth/login
