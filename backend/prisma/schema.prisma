@@ -39,6 +39,7 @@ enum ApplicationStatus {
 }
 
 model User {
+  pushTokens        PushToken[]
   id                String    @id @default(uuid())
   email             String    @unique @db.VarChar(255)
   password          String
@@ -195,4 +196,12 @@ model Payout {
   createdAt    DateTime @default(now())
 
   runner User @relation(fields: [runnerId], references: [id])
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  createdAt DateTime @default(now())
 }

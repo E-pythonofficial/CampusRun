@@ -1,14 +1,10 @@
-import dns from 'node:dns';
-dns.setDefaultResultOrder('ipv4first');
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+console.log('KEY LOADED:', process.env.RESEND_API_KEY ? 'yes' : 'NO');   // ← ADD THIS LINE
+
+// const FROM = 'CampusRun <onboarding@resend.dev>';
+const FROM = 'CampusRun <onboarding@resend.dev>';
 
 const header = (accent = '#FF6B00') => `
   <div style="background:${accent};padding:24px 32px;">
@@ -71,6 +67,11 @@ const box = (label, value, color = '#FF6B00') => `
   </div>
 `;
 
+// ─────────────────────────────────────────────────────────────
+// GENERIC EMAIL FUNCTION
+// Same signature as before — nothing else needs to change.
+// ─────────────────────────────────────────────────────────────
+
 export const sendEmail = async ({
   to,
   email,
@@ -85,25 +86,25 @@ export const sendEmail = async ({
       throw new Error('Recipient email is missing');
     }
 
-    if (!process.env.EMAIL_USER) {
-      throw new Error('EMAIL_USER is missing');
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is missing');
     }
 
-    if (!process.env.EMAIL_PASS) {
-      throw new Error('EMAIL_PASS is missing');
-    }
-
-    const info = await transporter.sendMail({
-      from: `"CampusRun" <${process.env.EMAIL_USER}>`,
+    const { data, error } = await resend.emails.send({
+      from: FROM,
       to: recipient,
       subject,
       html: html || `<p>${message || ''}</p>`,
     });
 
-    console.log('✅ Email sent:', info.messageId);
+    if (error) {
+      throw new Error(error.message || 'Resend send failed');
+    }
+
+    console.log('✅ Email sent:', data?.id);
     console.log('📧 Recipient:', recipient);
 
-    return info;
+    return data;
   } catch (error) {
     console.error('❌ Email service error:', error.message);
     throw error;

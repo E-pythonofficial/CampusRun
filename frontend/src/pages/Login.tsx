@@ -8,6 +8,8 @@ import { Label } from '@/components/ui/label';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, LogIn, Eye, EyeOff, ArrowLeft, AlertCircle, RefreshCw } from 'lucide-react';
 import api from '@/lib/api'; // ✅ Replaced axios import with your centralized api
+import { registerPushToken } from "@/lib/firebase";
+
 
 const Login = () => {
   const navigate = useNavigate();

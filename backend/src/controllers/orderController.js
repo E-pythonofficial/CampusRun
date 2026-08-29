@@ -1,8 +1,49 @@
 // BACKEND: controllers/orderController.js
 import axios from 'axios';
 import { PrismaClient } from '@prisma/client';
+import { sendPushNotification } from '../utils/push.js';
 
 const prisma = new PrismaClient();
+
+// ─────────────────────────────────────────────────────────────
+// Notify available/online dispatchers that a new order is up for grabs
+// ─────────────────────────────────────────────────────────────
+const notifyAvailableRunners = async (order) => {
+  try {
+    const availableRunners = await prisma.user.findMany({
+      where: {
+        role:        'DISPATCHER',
+        isApproved:  true,
+        isSuspended: false,
+        isAvailable: true,
+      },
+      select: { id: true },
+    });
+
+    if (availableRunners.length === 0) return;
+
+    const runnerIds = availableRunners.map(r => r.id);
+
+    const tokens = await prisma.pushToken.findMany({
+      where: { userId: { in: runnerIds } },
+    });
+
+    const payload = {
+      title: 'New delivery available! 📦',
+      body:  `${order.item} — pickup at ${order.pickupAddress}`,
+    };
+
+    for (const t of tokens) {
+      const result = await sendPushNotification(t.token, payload);
+      if (result?.expired) {
+        await prisma.pushToken.delete({ where: { id: t.id } }).catch(() => {});
+      }
+    }
+  } catch (error) {
+    console.error('notifyAvailableRunners error:', error.message);
+    // Never throw — this must not block order creation
+  }
+};
 
 // ─────────────────────────────────────────────────────────────
 // CREATE ORDER — initializes Paystack payment
@@ -64,7 +105,9 @@ export const createOrder = async (req, res) => {
       },
     });
 
-    notifyAvailableRunners(newOrder); 
+    // Fire and forget — don't let a push failure block the payment response
+    notifyAvailableRunners(newOrder)
+      .catch(err => console.error('notifyAvailableRunners failed:', err.message));
 
     return res.status(200).json({
       url:     paystackRes.data.data.authorization_url,

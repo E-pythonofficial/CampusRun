@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { initSocket } from './services/socket.service.js';
 import uploadRoutes from './routes/uploadRoutes.js';
 
+
 // Route Imports
 import authRoutes from './routes/auth.js';
 // import authRoutes from './routes/authRoutes.js';
@@ -15,6 +16,8 @@ import orderRoutes from './routes/orderRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import runnerRoutes from './routes/runnerRoutes.js';
 import { paystackWebhook } from './controllers/payoutController.js';
+import pushRoutes from './routes/pushRoutes.js';
+
 
 dotenv.config();
 
@@ -85,6 +88,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/admin',  adminRoutes);
 app.use('/api/runner', runnerRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/push', pushRoutes);
 
 //  Health Check
 app.get('/', (req, res) => {

@@ -1,10 +1,13 @@
 import prisma from '../lib/prisma.js';
+import { sendApplicationReceivedEmail } from '../utils/sendEmail.js';
 // import { runAiVerification }            from '../services/ai.service.js';
-import { sendApplicationReceivedEmail } from '../services/email.service.js';
+// import { sendApplicationReceivedEmail } from '../services/email.service.js';
 import { emitToAdmin, emitToAll, emitToRequester } from '../services/socket.service.js';
 import jwt from 'jsonwebtoken';
 
 import { createTransferRecipient } from './payoutController.js';
+
+import { sendPushToUser } from '../utils/push.js';
 
 
 // ── Submit runner application ──────────────────────────────────────────────────
@@ -169,6 +172,12 @@ export const acceptOrder = async (req, res) => {
       data:  { status: 'ACCEPTED', runnerId },
     });
 
+    // Fire and forget — notify the requester a runner accepted their order
+    sendPushToUser(prisma, updated.requesterId, {
+      title: 'Runner assigned!',
+      body:  `${runner.fullName} accepted your order and is heading your way.`,
+    }).catch(err => console.error('Push (acceptOrder) failed:', err.message));
+
     return res.status(200).json({ message: 'Order accepted!', order: updated });
   } catch (error) {
     console.error('acceptOrder error:', error);
@@ -193,6 +202,12 @@ export const markPickedUp = async (req, res) => {
       where: { id: orderId },
       data:  { status: 'PICKED_UP' },
     });
+
+    // Fire and forget — notify the requester their item was picked up
+    sendPushToUser(prisma, updated.requesterId, {
+      title: 'Order picked up!',
+      body:  'Your runner has your item and is on the way.',
+    }).catch(err => console.error('Push (markPickedUp) failed:', err.message));
 
     return res.status(200).json({ message: 'Marked as picked up', order: updated });
   } catch (error) {
@@ -240,6 +255,12 @@ export const completeRun = async (req, res) => {
       orderId: orderId,
       message: 'Your item has been delivered!',
     });
+
+    // Fire and forget — notify the requester their delivery is complete
+    sendPushToUser(prisma, order.requesterId, {
+      title: 'Delivered! 🎉',
+      body:  'Your item has arrived. Thanks for using CampusRun!',
+    }).catch(err => console.error('Push (completeRun) failed:', err.message));
 
     return res.status(200).json({
       message:  'Delivery confirmed! Earnings credited.',

@@ -6,6 +6,7 @@
 // ✅ Socket import removed — admin actions don't need to emit (runnerController does)
 
 import { PrismaClient } from '@prisma/client';
+import { sendPushToUser } from '../utils/push.js';
 import { sendEmail }    from '../utils/sendEmail.js';
 import axios            from 'axios';
 
@@ -228,6 +229,14 @@ export const rejectDispatcher = async (req, res) => {
       `,
     });
 
+    sendPushToUser(prisma,user.id,{
+      title:"Application Update",
+      body:"Your Campus Run runner application has been reviewed.",
+      data:{
+        type:"REJECTED"
+ }
+})
+
     return res.status(200).json({ message: `${user.fullName} rejected successfully` });
   } catch (error) {
     console.error('rejectDispatcher error:', error);
@@ -277,6 +286,19 @@ export const approveDispatcher = async (req, res) => {
       `,
     });
 
+    await sendPushToUser(
+      prisma,
+      user.id,
+      {
+        title: '🎉 Application Approved',
+        body: 'Congratulations! You are now approved as a Campus Run runner.',
+        data: {
+          type: 'APPLICATION_APPROVED',
+          userId: user.id,
+        },
+      }
+  );
+
     return res.status(200).json({ message: `${user.fullName} approved` });
   } catch (error) {
     console.error('approveDispatcher error:', error);
@@ -303,6 +325,11 @@ export const suspendRunner = async (req, res) => {
       html: `<p>Hi ${user.fullName}, your account has been suspended for ${suspendDays} days.${reason ? ` Reason: ${reason}` : ''}</p>`,
     });
 
+    sendPushToUser(prisma,id,{title:"⚠️ Account Suspended",body:"Your Campus Run account has been temporarily suspended.",
+      data:{type:"SUSPENDED"
+ }
+})
+
     return res.status(200).json({ message: `${user.fullName} suspended for ${suspendDays} days` });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -322,6 +349,12 @@ export const liftSuspension = async (req, res) => {
       to: user.email, subject: '✅ Campus Run — Suspension Lifted',
       html: `<p>Hi ${user.fullName}, your suspension has been lifted. You can accept deliveries again.</p>`,
     });
+
+    sendPushToUser(prisma,id,{
+      title:"✅ Account Restored",
+      body:"Your Campus Run account is active again.",data:{type:"SUSPENSION_LIFTED"
+ }
+})
 
     return res.status(200).json({ message: `Suspension lifted for ${user.fullName}` });
   } catch (error) {
@@ -512,6 +545,13 @@ export const payoutRunner = async (req, res) => {
       html: `<p>Hi ${runner.fullName}, your earnings of ₦${amount.toLocaleString()} have been sent to your ${runner.bankName} account. It should arrive within minutes.</p>`,
     });
 
+    sendPushToUser(prisma,runner.id,{title:"💰 Earnings Paid", body:`₦${amount.toLocaleString()} has been sent to your account.`,
+    data:{
+      type:"PAYOUT_SUCCESS",
+      amount:String(amount)
+ }
+})
+
     return res.status(200).json({
       message: `Payout of ₦${amount.toLocaleString()} initiated for ${runner.fullName}`,
       transfer,
@@ -573,6 +613,14 @@ export const payoutAllEligible = async (req, res) => {
           subject: '💰 Campus Run — Earnings Paid!',
           html:    `<p>Hi ${runner.fullName}, ₦${amount.toLocaleString()} has been sent to your bank account.</p>`,
         });
+
+        await sendPushToUser(prisma, runner.id,{title:'💰 Earnings Paid', body:`Your earnings of ₦${amount.toLocaleString()} have been sent.`,
+        data:{
+          type:'PAYOUT_SUCCESS',
+          amount:String(amount)
+    }
+  }
+);
 
         results.push({ runner: runner.fullName, amount, status: 'success' });
       } catch (err) {
