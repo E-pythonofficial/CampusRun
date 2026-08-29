@@ -77,14 +77,22 @@ const Login = () => {
       // with a field that isn't even returned in the success response.
 
       if (user) {
+        try {
+          await registerPushToken();
+          console.log("Push notification token registered");
+        } catch (pushError) {
+          console.error("Push registration failed:", pushError);
+        }
+        
         const userRole = user.role as keyof typeof roleRoutes;
         const targetRoute = roleRoutes[userRole] || '/dashboard';
         
-        navigate(targetRoute, { 
+        navigate(targetRoute, {
           replace: true,
           state: { welcome: true, name: user.fullName }
-        });
-      }
+      });
+    }
+
     } catch (err: any) {
       const status = err.response?.status || err.status;
       

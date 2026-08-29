@@ -1,6 +1,12 @@
-import { initializeApp } from 'firebase/app';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import api from '@/lib/api';
+import { initializeApp } from "firebase/app";
+import {
+  getMessaging,
+  getToken,
+  onMessage,
+} from "firebase/messaging";
+
+import api from "@/lib/api";
+
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -10,32 +16,58 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+
 const app = initializeApp(firebaseConfig);
-export const messaging = getMessaging(app);
+
+
+export const messaging =
+  typeof window !== "undefined"
+    ? getMessaging(app)
+    : null;
+
+
 
 export async function registerPushToken() {
   try {
+    if (!messaging) return null;
+
     const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return null;
+
+    if (permission !== "granted") {
+      return null;
+    }
+
 
     const token = await getToken(messaging, {
       vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY,
     });
 
+
     if (token) {
-      await api.post('/push/subscribe', { token });
+      await api.post("/push/subscribe", {
+        token,
+      });
     }
 
+
     return token;
+
   } catch (error) {
-    console.error('Push registration failed:', error);
+    console.error("Push registration failed:", error);
     return null;
   }
 }
 
-// Foreground messages (app open in a tab)
+
+
+// Foreground messages
 export function listenForMessages(callback) {
+
+  if (!messaging) return;
+
+
   onMessage(messaging, (payload) => {
     callback(payload);
   });
+
 }
