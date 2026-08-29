@@ -144,7 +144,7 @@ export const register = async (req, res) => {
       await sendEmail({
         email: newUser.email,
         subject: 'Verify your CampusRun Account',
-        html: 
+        html:
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
             <h2 style="color:#FF6B00;">
               Welcome to CampusRun! 🚀
@@ -181,10 +181,9 @@ export const register = async (req, res) => {
             </p>
 
             <p>
-              — CampusRun Team
+              CampusRun Team
             </p>
           </div>
-        ,
       });
     } catch (emailError) {
       console.error(
