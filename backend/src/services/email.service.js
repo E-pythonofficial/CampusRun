@@ -1,4 +1,4 @@
-```js
+js
 // backend/src/services/email.service.js
 
 import nodemailer from 'nodemailer';
@@ -24,10 +24,8 @@ transporter.verify((error) => {
   }
 });
 
-// ─────────────────────────────────────────────────────────────
-// SHARED EMAIL LAYOUT
-// ─────────────────────────────────────────────────────────────
 
+// SHARED EMAIL LAYOUT
 const header = (accent = '#FF6B00') => `
   <div style="
     background:${accent};
@@ -495,9 +493,5 @@ export const sendNudgeEmail = async (
   });
 };
 
-// ─────────────────────────────────────────────────────────────
-// EXPORT TRANSPORTER FOR TESTING IF NEEDED
-// ─────────────────────────────────────────────────────────────
 
 export { transporter };
-```
