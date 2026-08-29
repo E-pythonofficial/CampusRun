@@ -1,7 +1,7 @@
 // backend/src/services/email.service.js
-import nodemailer from 'nodemailer';
 import dns from 'node:dns';
 dns.setDefaultResultOrder('ipv4first');
+import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
