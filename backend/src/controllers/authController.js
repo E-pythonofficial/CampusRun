@@ -144,7 +144,7 @@ export const register = async (req, res) => {
       await sendEmail({
         email: newUser.email,
         subject: 'Verify your CampusRun Account',
-        html:
+        html: `
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
             <h2 style="color:#FF6B00;">
               Welcome to CampusRun! 🚀
@@ -181,9 +181,10 @@ export const register = async (req, res) => {
             </p>
 
             <p>
-              CampusRun Team
+              — CampusRun Team
             </p>
           </div>
+        `,
       });
     } catch (emailError) {
       console.error(
@@ -360,7 +361,7 @@ export const forgotPassword = async (req, res) => {
     await sendEmail({
       email: normalizedEmail,
       subject: 'Your CampusRun Reset Code',
-      html: 
+      html: `
         <div style="font-family:Arial,sans-serif;text-align:center;padding:30px;">
           <h2 style="color:#FF6B00;">
             Password Reset
@@ -389,7 +390,7 @@ export const forgotPassword = async (req, res) => {
             If you did not request a password reset, you can ignore this email.
           </p>
         </div>
-      ,
+      `,
     });
 
     return res.status(200).json({
@@ -647,7 +648,7 @@ export const resendVerification = async (req, res) => {
     await sendEmail({
       email: normalizedEmail,
       subject: 'Verify your CampusRun Account',
-      html: 
+      html: `
         <div style="font-family:Arial,sans-serif;text-align:center;padding:30px;">
           <h2 style="color:#FF6B00;">
             Verify your CampusRun Account
@@ -674,7 +675,7 @@ export const resendVerification = async (req, res) => {
             </a>
           </div>
         </div>
-      ,
+      `,
     });
 
     return res.json({

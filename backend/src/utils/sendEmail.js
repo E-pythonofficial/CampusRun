@@ -8,23 +8,23 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const header = (accent = '#FF6B00') => 
+const header = (accent = '#FF6B00') => `
   <div style="background:${accent};padding:24px 32px;">
     <h1 style="color:white;margin:0;font-size:20px;font-family:Arial,sans-serif;">
       CampusRun
     </h1>
   </div>
-;
+`;
 
-const footer = 
+const footer = `
   <div style="padding:20px 32px;background:#f9f9f9;border-top:1px solid #eee;">
     <p style="color:#aaa;font-size:12px;margin:0;font-family:Arial,sans-serif;">
       Sent by CampusRun. Do not reply directly to this email.
     </p>
   </div>
-;
+`;
 
-const wrap = (content, accent = '#FF6B00') => 
+const wrap = (content, accent = '#FF6B00') => `
   <!DOCTYPE html>
   <html>
     <body style="margin:0;padding:40px 0;background:#f0f0f0;font-family:Arial,sans-serif;">
@@ -37,15 +37,15 @@ const wrap = (content, accent = '#FF6B00') =>
       </div>
     </body>
   </html>
-;
+`;
 
 const h2 = (text) =>
-  <h2 style="color:#111;margin-top:0;">${text}</h2>;
+  `<h2 style="color:#111;margin-top:0;">${text}</h2>`;
 
 const p = (text) =>
-  <p style="color:#444;line-height:1.7;font-size:15px;">${text}</p>;
+  `<p style="color:#444;line-height:1.7;font-size:15px;">${text}</p>`;
 
-const box = (label, value, color = '#FF6B00') => 
+const box = (label, value, color = '#FF6B00') => `
   <div style="
     border-left:4px solid ${color};
     background:#fafafa;
@@ -67,7 +67,7 @@ const box = (label, value, color = '#FF6B00') =>
       ${value}
     </p>
   </div>
-;
+`;
 
 export const sendEmail = async ({
   to,
@@ -352,4 +352,3 @@ export const sendNudgeEmail = async (
     `),
   });
 };
-
