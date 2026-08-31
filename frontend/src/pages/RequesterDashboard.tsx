@@ -411,6 +411,10 @@ useEffect(() => {
       alert('Please fill in all details and select locations.');
       return;
     }
+    if (nearbyDispatchers.length === 0) {
+      alert('No runners are currently online near your pickup location. Please try again in a few minutes.');
+      return;
+    }
     setIsProcessing(true);
     try {
       const token = localStorage.getItem('campusrun_token');
