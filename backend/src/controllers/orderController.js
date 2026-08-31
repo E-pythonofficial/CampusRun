@@ -18,7 +18,7 @@ const notifyAvailableRunners = async (order) => {
         lastSeenAt: {
           gte: new Date(Date.now() - 2 * 60 * 1000),
         },
-    };
+    }
 
     if (availableRunners.length === 0) return;
 
