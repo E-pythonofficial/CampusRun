@@ -5,20 +5,20 @@ import { sendPushNotification } from '../utils/push.js';
 
 const prisma = new PrismaClient();
 
-// ─────────────────────────────────────────────────────────────
+
 // Notify available/online dispatchers that a new order is up for grabs
-// ─────────────────────────────────────────────────────────────
 const notifyAvailableRunners = async (order) => {
   try {
-    const availableRunners = await prisma.user.findMany({
+    const availableRunners = {
       where: {
-        role:        'DISPATCHER',
-        isApproved:  true,
+        isApproved: true,
         isSuspended: false,
         isAvailable: true,
-      },
-      select: { id: true },
-    });
+        isOnline: true,
+        lastSeenAt: {
+          gte: new Date(Date.now() - 2 * 60 * 1000),
+        },
+    };
 
     if (availableRunners.length === 0) return;
 
@@ -45,12 +45,25 @@ const notifyAvailableRunners = async (order) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
+// Check whether there is at least one dispatcher who can currently accept orders
+const hasAvailableDispatcher = async () => {
+  const count = await prisma.user.count({
+    where: {
+      role: 'DISPATCHER',
+      isApproved: true,
+      isSuspended: false,
+      isAvailable: true,
+    },
+  });
+
+  return count > 0;
+};
+
+
 // CREATE ORDER — initializes Paystack payment
-// ─────────────────────────────────────────────────────────────
 export const createOrder = async (req, res) => {
   try {
-    const { item, pickup, dropoff, userId, fare } = req.body;
+    const { item, pickup, dropoff, userId, fare, itemImageUrl } = req.body;
 
     if (!item || !pickup || !dropoff || !userId || !fare) {
       return res.status(400).json({ message: 'Missing required fields' });
@@ -58,6 +71,17 @@ export const createOrder = async (req, res) => {
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // CHECK AVAILABLE DISPATCHERS BEFORE PAYSTACK
+    const availableDispatcher = await hasAvailableDispatcher();
+
+    if (!availableDispatcher) {
+      return res.status(409).json({
+        code: 'NO_DISPATCHER_AVAILABLE',
+        message:
+          'No dispatchers are currently available. Please try again in a few minutes.',
+      });
+    }
 
     const paystackRes = await axios.post(
       'https://api.paystack.co/transaction/initialize',
@@ -88,6 +112,7 @@ export const createOrder = async (req, res) => {
     const newOrder = await prisma.delivery.create({
       data: {
         item,
+        itemImageUrl: itemImageUrl || null,
         pickupAddress:  pickup.address,
         pickupLat:      pickup.lat,
         pickupLng:      pickup.lng,
@@ -106,9 +131,6 @@ export const createOrder = async (req, res) => {
     });
 
     // Fire and forget — don't let a push failure block the payment response
-    notifyAvailableRunners(newOrder)
-      .catch(err => console.error('notifyAvailableRunners failed:', err.message));
-
     return res.status(200).json({
       url:     paystackRes.data.data.authorization_url,
       orderId: newOrder.id,
@@ -120,10 +142,9 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
+
 // CONFIRM DELIVERY — runner enters PIN to complete handover
 // Called by the DISPATCHER app when runner enters the PIN
-// ─────────────────────────────────────────────────────────────
 export const confirmDelivery = async (req, res) => {
   try {
     const { orderId, pin } = req.body;

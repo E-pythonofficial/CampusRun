@@ -432,9 +432,21 @@ useEffect(() => {
         },
       }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.url) window.location.href = res.data.url;
-    } catch {
-      alert('Failed to start payment. Please check your connection.');
-    } finally {
+    }
+    catch (error: any) {
+      const status = error?.response?.status;
+      const code = error?.response?.data?.code;
+      
+      if (status === 409 && code === 'NO_DISPATCHER_AVAILABLE') {
+        alert('No dispatchers are currently available. Please try again in a few minutes.');
+        return;
+      }
+      alert(
+        error?.response?.data?.message ||
+        'Failed to start payment. Please check your connection.'
+      );
+    }
+  } finally {
       setIsProcessing(false);
     }
   };

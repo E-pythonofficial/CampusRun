@@ -410,17 +410,22 @@ export const getNearbyRunners = async (req, res) => {
 
     const runners = await prisma.user.findMany({
       where: {
-        role:       'DISPATCHER',
+        role: 'DISPATCHER',
         isApproved: true,
-        isOnline:   true,
-        lastLat:    { not: null },
-        lastLng:    { not: null },
+        isSuspended: false,
+        isOnline: true,
+        isAvailable: true,
+        lastLat: { not: null },
+        lastLng: { not: null },
+        lastSeenAt: {
+          gte: new Date(Date.now() - 2 * 60 * 1000),
+        },
       },
       select: {
-        id:       true,
+        id: true,
         fullName: true,
-        lastLat:  true,
-        lastLng:  true,
+        lastLat: true,
+        lastLng: true,
         lastSeenAt: true,
       },
     });
