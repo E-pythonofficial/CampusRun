@@ -641,6 +641,7 @@ export default function LandingPage() {
                   <h4 className="font-display text-3xl tracking-wide mb-1" style={{ color: C.navy }}>{rep.name.toUpperCase()}</h4>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] mb-8" style={{ color: C.muted }}>{rep.role}</p>
                   <a href={`https://wa.me/${rep.phone}`}
+                  target= "_blank"
                     className="inline-flex items-center gap-3 text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wider text-xs transition-all hover:opacity-90"
                     style={{ background: C.navy }}>
                     WhatsApp <MessageCircle size={15} />
