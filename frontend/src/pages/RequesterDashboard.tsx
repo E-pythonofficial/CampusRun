@@ -278,69 +278,67 @@ const RequesterDashboard = () => {
     }
   }, []);
 
-   // ── Auto-refresh nearby dispatchers every 30 seconds ──────────────────────
- useEffect(() => {
-   if (!userLocation) return;
-   const interval = setInterval(() => {
-           fetchNearbyDispatchers(userLocation[0], userLocation[1]);
-         }, 10000);
-         return () => clearInterval(interval);
-       }, [userLocation, fetchNearbyDispatchers]);
+  // ── Auto-refresh nearby dispatchers every 10 seconds ──────────────────────
+  useEffect(() => {
+    if (!userLocation) return;
+    const interval = setInterval(() => {
+      fetchNearbyDispatchers(userLocation[0], userLocation[1]);
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [userLocation, fetchNearbyDispatchers]);
 
-  // ── GPS — aggressive, uses watchPosition for accuracy ────────────────────
-// ── GPS — use a ref to track first fix ───────────────────────────────────────
-const hasFirstFix = useRef(false);
-const watchIdRef  = useRef<number | null>(null);
+  // ── GPS — use a ref to track first fix ───────────────────────────────────
+  const hasFirstFix = useRef(false);
+  const watchIdRef  = useRef<number | null>(null);
 
-useEffect(() => {
-  setMounted(true);
+  useEffect(() => {
+    setMounted(true);
 
-  if (!navigator.geolocation) {
-    setLocationError('Geolocation not supported by your browser.');
-    fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
-    return;
-  }
-
-  // Clear any existing watch
-  if (watchIdRef.current !== null) {
-    navigator.geolocation.clearWatch(watchIdRef.current);
-  }
-
-  watchIdRef.current = navigator.geolocation.watchPosition(
-    async (pos) => {
-      const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-      setLocationError(null);
-      setMapCenter(loc);
-      setUserLocation(loc);
-
-      // Only fetch address + nearby on FIRST fix
-      if (!hasFirstFix.current) {
-        hasFirstFix.current = true;
-        fetchNearbyDispatchers(loc[0], loc[1]);
-        const address = await reverseGeocode(loc[0], loc[1]);
-        setPickupQuery(address);
-        setOrderData(prev => ({ ...prev, pickup: address, pickupCoords: loc }));
-      }
-    },
-    (err) => {
-      console.error('Location error:', err);
-      if      (err.code === 1) setLocationError('Location access denied. Please enable location permissions and retry.');
-      else if (err.code === 2) setLocationError('Could not detect your position. Search manually.');
-      else                     setLocationError('Location timed out. Search manually or retry.');
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation not supported by your browser.');
       fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
-    },
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
-  );
+      return;
+    }
 
-  // Cleanup on unmount
-  return () => {
+    // Clear any existing watch
     if (watchIdRef.current !== null) {
       navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
     }
-  };
-}, [fetchNearbyDispatchers]); // ← only depends on fetchNearbyDispatchers
 
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      async (pos) => {
+        const loc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setLocationError(null);
+        setMapCenter(loc);
+        setUserLocation(loc);
+
+        // Only fetch address + nearby on FIRST fix
+        if (!hasFirstFix.current) {
+          hasFirstFix.current = true;
+          fetchNearbyDispatchers(loc[0], loc[1]);
+          const address = await reverseGeocode(loc[0], loc[1]);
+          setPickupQuery(address);
+          setOrderData(prev => ({ ...prev, pickup: address, pickupCoords: loc }));
+        }
+      },
+      (err) => {
+        console.error('Location error:', err);
+        if      (err.code === 1) setLocationError('Location access denied. Please enable location permissions and retry.');
+        else if (err.code === 2) setLocationError('Could not detect your position. Search manually.');
+        else                     setLocationError('Location timed out. Search manually or retry.');
+        fetchNearbyDispatchers(defaultCenter[0], defaultCenter[1]);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 }
+    );
+
+    // Cleanup on unmount
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+    };
+  }, [fetchNearbyDispatchers]); // ← only depends on fetchNearbyDispatchers
 
   // ── Image upload to Cloudinary via backend ────────────────────────────────
   const handleImageFile = async (file: File) => {
@@ -432,11 +430,10 @@ useEffect(() => {
         },
       }, { headers: { Authorization: `Bearer ${token}` } });
       if (res.data.url) window.location.href = res.data.url;
-    }
-    catch (error: any) {
+    } catch (error: any) {
       const status = error?.response?.status;
       const code = error?.response?.data?.code;
-      
+
       if (status === 409 && code === 'NO_DISPATCHER_AVAILABLE') {
         alert('No dispatchers are currently available. Please try again in a few minutes.');
         return;
@@ -445,8 +442,7 @@ useEffect(() => {
         error?.response?.data?.message ||
         'Failed to start payment. Please check your connection.'
       );
-    }
-  } finally {
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -539,18 +535,19 @@ useEffect(() => {
               )}
 
               {/* Real dispatchers only — no mock data */}
-              {!activeRun && nearbyDispatchers .filter(d => 
-              d.lat !== 0 && d.lng !== 0 &&        // ← filter out 0,0 coordinates
-              d.lat !== null && d.lng !== null &&   // ← filter out nulls
-              Math.abs(d.lat) <= 90 &&             // ← valid lat range
-              Math.abs(d.lng) <= 180               // ← valid lng range
-              )
-              .map(d => (
-              <Marker key={d.id} position={[d.lat, d.lng]} icon={runnerPinIcon(d.name)}>
-              <Popup>{d.name} — Runner</Popup>
-              </Marker>
-            ))
-            }
+              {!activeRun && nearbyDispatchers
+                .filter(d =>
+                  d.lat !== 0 && d.lng !== 0 &&        // ← filter out 0,0 coordinates
+                  d.lat !== null && d.lng !== null &&  // ← filter out nulls
+                  Math.abs(d.lat) <= 90 &&             // ← valid lat range
+                  Math.abs(d.lng) <= 180                // ← valid lng range
+                )
+                .map(d => (
+                  <Marker key={d.id} position={[d.lat, d.lng]} icon={runnerPinIcon(d.name)}>
+                    <Popup>{d.name} — Runner</Popup>
+                  </Marker>
+                ))
+              }
 
               {activeRun && (
                 <Marker
@@ -585,9 +582,9 @@ useEffect(() => {
               )}
             </AnimatePresence>
             {locationError && !userLocation && (
-            <button onClick={() => window.location.reload()}  // ← reload page to retry
-              className="absolute bottom-32 right-4 z-50 bg-white shadow-xl rounded-2xl px-4 py-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-700">
-              <MapPin size={14} className="text-orange-500" /> Retry Location
+              <button onClick={() => window.location.reload()}  // ← reload page to retry
+                className="absolute bottom-32 right-4 z-50 bg-white shadow-xl rounded-2xl px-4 py-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-700">
+                <MapPin size={14} className="text-orange-500" /> Retry Location
               </button>
             )}
 

@@ -145,10 +145,8 @@ export default function LandingPage() {
   ];
 
   const team = [
-    { name: 'Korede',    role: 'Support Lead I',          phone: '2347079955201' },
-    { name: 'Aitee',    role: 'Support Lead II',  phone: '2348060205010' },
-    { name: 'David', role: 'Support Lead III',        phone: '2348039867195' },
-    { name: 'Patrick', role: 'Support Lead IV',        phone: '2348039867195' }
+    { name: 'David', role: 'Support Lead',        phone: '2349067859388' },
+    { name: 'Subomi', role: 'Support Lead',        phone: '2347068314286' }
   ];
 
   return (

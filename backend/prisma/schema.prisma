@@ -205,3 +205,4 @@ model PushToken {
   token     String   @unique
   createdAt DateTime @default(now())
 }
+
