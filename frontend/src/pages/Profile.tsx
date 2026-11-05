@@ -40,14 +40,14 @@ const Profile = () => {
   const isDark = theme === 'dark';
 
   const themeClass = {
-    bg: isDark ? 'bg-[#020617]' : 'bg-[#F8FAFC]',
-    header: isDark ? 'bg-[#0F172A]/50 border-white/5' : 'bg-white/70 border-slate-200',
-    card: isDark ? 'bg-[#0F172A]' : 'bg-white',
-    input: isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-slate-100 border-slate-200 text-slate-900',
-    text: isDark ? 'text-white' : 'text-slate-900',
-    subText: isDark ? 'text-white/40' : 'text-slate-500',
-    border: isDark ? 'border-white/5' : 'border-slate-200',
-    linkBg: isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-200'
+    bg: isDark ? 'bg-[#020617]' : 'bg-[#EDECDA]',
+    header: isDark ? 'bg-[#0F172A]/50 border-[#EDECDA]/5' : 'bg-[#EDECDA]/70 border-slate-200',
+    card: isDark ? 'bg-[#0F172A]' : 'bg-[#EDECDA]',
+    input: isDark ? 'bg-[#EDECDA]/5 border-[#EDECDA]/10 text-[#EDECDA]' : 'bg-slate-100 border-slate-200 text-slate-900',
+    text: isDark ? 'text-[#EDECDA]' : 'text-slate-900',
+    subText: isDark ? 'text-[#EDECDA]/40' : 'text-slate-500',
+    border: isDark ? 'border-[#EDECDA]/5' : 'border-slate-200',
+    linkBg: isDark ? 'bg-[#EDECDA]/5 border-[#EDECDA]/5' : 'bg-[#EDECDA] border-slate-200'
   };
 
   const [formData, setFormData] = useState({
@@ -125,7 +125,7 @@ const Profile = () => {
             exit={{ y: -20, opacity: 0 }}
             className="fixed top-24 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-xs"
           >
-            <div className="bg-green-500 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-white/20 backdrop-blur-md">
+            <div className="bg-green-500 text-[#EDECDA] px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 border border-[#EDECDA]/20 backdrop-blur-md">
               <CheckCircle2 size={20} />
               <span className="text-[11px] font-black uppercase tracking-widest">Changes Saved</span>
             </div>
@@ -138,7 +138,7 @@ const Profile = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
-            className={`p-2 rounded-xl ${isDark ? 'bg-white/5 text-white/70' : 'bg-slate-200 text-slate-600'} hover:opacity-80 transition-all`}
+            className={`p-2 rounded-xl ${isDark ? 'bg-[#EDECDA]/5 text-[#EDECDA]/70' : 'bg-slate-200 text-slate-600'} hover:opacity-80 transition-all`}
           >
             <ArrowLeft size={20} />
           </button>
@@ -171,7 +171,7 @@ const Profile = () => {
                 )}
               </div>
             </div>
-            <button onClick={handleImageClick} className={`absolute bottom-0 right-0 p-2 bg-primary rounded-xl border-4 ${isDark ? 'border-[#020617]' : 'border-[#F8FAFC]'} text-white hover:scale-110 active:scale-95 transition-all shadow-lg`}>
+            <button onClick={handleImageClick} className={`absolute bottom-0 right-0 p-2 bg-primary rounded-xl border-4 ${isDark ? 'border-[#020617]' : 'border-[#EDECDA]'} text-[#EDECDA] hover:scale-110 active:scale-95 transition-all shadow-lg`}>
               <Camera size={16} />
             </button>
           </div>
@@ -214,8 +214,8 @@ const Profile = () => {
                 {user?.userType === 'STAFF' ? 'Staff ID' : 'Matric Number'}
               </Label>
               <div className="relative">
-                {user?.userType === 'STAFF' ? <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} /> : <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />}
-                <Input value={formData.matricNumber} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`} />
+                {user?.userType === 'STAFF' ? <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EDECDA]/20" size={18} /> : <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EDECDA]/20" size={18} />}
+                <Input value={formData.matricNumber} disabled className={`${isDark ? 'bg-[#EDECDA]/5 border-[#EDECDA]/10 text-[#EDECDA]/40' : 'bg-[#EDECDA] border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`} />
               </div>
             </div>
 
@@ -223,8 +223,8 @@ const Profile = () => {
                <div className="space-y-2">
                   <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Department</Label>
                   <div className="relative">
-                    <School className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                    <Input value={formData.department} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`} />
+                    <School className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EDECDA]/20" size={18} />
+                    <Input value={formData.department} disabled className={`${isDark ? 'bg-[#EDECDA]/5 border-[#EDECDA]/10 text-[#EDECDA]/40' : 'bg-[#EDECDA] border-slate-200 text-slate-400'} h-14 pl-12 rounded-2xl cursor-not-allowed`} />
                   </div>
                </div>
             </div>
@@ -233,13 +233,13 @@ const Profile = () => {
                <div className="space-y-2">
                   <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>Location/Hostel</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={16} />
-                    <Input value={formData.hostel} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 pl-10 rounded-2xl cursor-not-allowed text-xs`} />
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-[#EDECDA]/20" size={16} />
+                    <Input value={formData.hostel} disabled className={`${isDark ? 'bg-[#EDECDA]/5 border-[#EDECDA]/10 text-[#EDECDA]/40' : 'bg-[#EDECDA] border-slate-200 text-slate-400'} h-14 pl-10 rounded-2xl cursor-not-allowed text-xs`} />
                   </div>
                </div>
                <div className="space-y-2">
                   <Label className={`${themeClass.subText} text-[10px] font-black uppercase ml-1`}>College</Label>
-                  <Input value={formData.college} disabled className={`${isDark ? 'bg-white/5 border-white/10 text-white/40' : 'bg-slate-50 border-slate-200 text-slate-400'} h-14 rounded-2xl cursor-not-allowed text-xs`} />
+                  <Input value={formData.college} disabled className={`${isDark ? 'bg-[#EDECDA]/5 border-[#EDECDA]/10 text-[#EDECDA]/40' : 'bg-[#EDECDA] border-slate-200 text-slate-400'} h-14 rounded-2xl cursor-not-allowed text-xs`} />
                </div>
             </div>
           </div>
@@ -248,7 +248,7 @@ const Profile = () => {
             variant="outline"
             onClick={isEditing ? handleSave : () => setIsEditing(true)}
             className={`w-full h-14 rounded-2xl font-bold text-xs tracking-widest uppercase transition-all shadow-sm mt-4 ${
-              isEditing ? 'bg-primary text-white border-none hover:bg-orange-600' : `${isDark ? 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'}`
+              isEditing ? 'bg-primary text-[#EDECDA] border-none hover:bg-orange-600' : `${isDark ? 'bg-[#EDECDA]/5 text-[#EDECDA]/60 border-[#EDECDA]/10 hover:bg-[#EDECDA]/10' : 'bg-[#EDECDA] text-slate-500 border-slate-200 hover:bg-[#EDECDA]'}`
             }`}
           >
             {isEditing ? 'Save Changes' : 'Edit Basic Info'}
@@ -274,7 +274,7 @@ const Profile = () => {
             <ChevronRight size={18} className="text-red-500/40 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          <Button onClick={handleLogout} className={`w-full h-14 rounded-2xl font-black tracking-widest uppercase transition-all ${isDark ? 'bg-white/5 hover:bg-red-500 text-white/40 hover:text-white' : 'bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-white'}`}>
+          <Button onClick={handleLogout} className={`w-full h-14 rounded-2xl font-black tracking-widest uppercase transition-all ${isDark ? 'bg-[#EDECDA]/5 hover:bg-red-500 text-[#EDECDA]/40 hover:text-[#EDECDA]' : 'bg-slate-200 hover:bg-red-500 text-slate-500 hover:text-[#EDECDA]'}`}>
             Sign Out
           </Button>
         </div>
@@ -286,7 +286,7 @@ const Profile = () => {
 const ProfileLink = ({ icon: Icon, label, onClick, themeClass }: any) => (
   <button onClick={onClick} className={`w-full flex items-center justify-between p-5 rounded-2xl ${themeClass.linkBg} border shadow-sm hover:border-primary/30 hover:bg-primary/5 transition-all group`}>
     <div className="flex items-center gap-4">
-      <div className={`p-2 rounded-xl ${themeClass.bg} text-primary group-hover:bg-primary group-hover:text-white transition-colors`}>
+      <div className={`p-2 rounded-xl ${themeClass.bg} text-primary group-hover:bg-primary group-hover:text-[#EDECDA] transition-colors`}>
         <Icon size={18} />
       </div>
       <span className={`font-bold text-[11px] uppercase tracking-widest ${themeClass.subText} group-hover:text-primary transition-colors`}>{label}</span>

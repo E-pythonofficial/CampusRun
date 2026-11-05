@@ -17,19 +17,24 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import api from '@/lib/api';
 
-
-
-
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon   from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({ iconUrl: markerIcon, iconRetinaUrl: markerIcon2x, shadowUrl: markerShadow });
 
+// ─── PALETTE (same on every page) ─────────────────────────────────────────────
+//   off-white #EDECDA · green #A4C41C · charcoal #36454F
+// Tailwind classes below use these as literal hex values, e.g. bg-[#A4C41C].
+// (Tailwind can't see class names built from variables, so they're written out.)
+const GREEN    = '#A4C41C';
+const CHARCOAL = '#36454F';
+const CREAM    = '#EDECDA';
+
 // ─── Map icons ────────────────────────────────────────────────────────────────
 const userDotIcon = L.divIcon({
   className: '',
-  html: `<div style="width:16px;height:16px;background:#3b82f6;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+  html: `<div style="width:16px;height:16px;background:${CHARCOAL};border:3px solid ${CREAM};border-radius:50%;box-shadow:0 2px 8px rgba(54,69,79,0.5)"></div>`,
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 });
@@ -38,11 +43,11 @@ const runnerPinIcon = (name: string) => L.divIcon({
   className: '',
   html: `
     <div style="display:flex;flex-direction:column;align-items:center;transform:translate(-50%,-100%)">
-      <div style="background:white;padding:2px 6px;border-radius:6px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;color:#0f172a;border:1px solid rgba(249,115,22,0.3);white-space:nowrap;margin-bottom:4px;box-shadow:0 2px 8px rgba(0,0,0,0.15)">${name}</div>
-      <div style="width:36px;height:36px;background:#f97316;border-radius:50%;border:2px solid white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(249,115,22,0.4)">
+      <div style="background:${CREAM};padding:2px 6px;border-radius:6px;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;color:${CHARCOAL};border:1px solid ${CHARCOAL};white-space:nowrap;margin-bottom:4px;box-shadow:0 2px 8px rgba(54,69,79,0.25)">${name}</div>
+      <div style="width:36px;height:36px;background:${GREEN};border-radius:50%;border:2px solid ${CREAM};display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(54,69,79,0.4)">
         <img src="/mascot.png" style="width:26px;height:26px;object-fit:contain" onerror="this.style.display='none'" />
       </div>
-      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid white;margin-top:-1px"></div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:6px solid ${CREAM};margin-top:-1px"></div>
     </div>`,
   iconSize: [36, 36],
   iconAnchor: [18, 42],
@@ -203,16 +208,22 @@ const RequesterDashboard = () => {
   const debouncedDropoff = useDebounce(dropoffQuery, 350);
   const debouncedPOI     = useDebounce(poiQuery, 200);
 
+  // Light theme = off-white page + charcoal text.
+  // Dark theme  = charcoal page + off-white text.
+  // `accentText` is the colour for small accent text/icons: charcoal on off-white
+  // (green is too faint there) and green on charcoal.
   const isDark = theme === 'dark';
   const themeClass = {
-    bg:       isDark ? 'bg-[#020617]'                : 'bg-[#F8FAFC]',
-    card:     isDark ? 'bg-[#0F172A]/95'             : 'bg-white/95',
-    input:    isDark ? 'bg-[#161D2F] border-white/5' : 'bg-slate-100 border-slate-200',
-    text:     isDark ? 'text-white'                  : 'text-slate-900',
-    subText:  isDark ? 'text-white/40'               : 'text-slate-500',
-    border:   isDark ? 'border-white/5'              : 'border-slate-200',
-    drawer:   isDark ? 'bg-[#020617]'                : 'bg-white',
-    dropdown: isDark ? 'bg-[#0F172A] border-white/10': 'bg-white border-slate-200',
+    bg:         isDark ? 'bg-[#36454F]'                         : 'bg-[#EDECDA]',
+    card:       isDark ? 'bg-[#36454F]/95'                      : 'bg-[#EDECDA]/95',
+    input:      isDark ? 'bg-[#36454F] border-[#EDECDA]/25'     : 'bg-[#EDECDA] border-[#36454F]/25',
+    text:       isDark ? 'text-[#EDECDA]'                       : 'text-[#36454F]',
+    subText:    isDark ? 'text-[#EDECDA]/60'                    : 'text-[#36454F]/60',
+    label:      isDark ? 'text-[#EDECDA]'                       : 'text-[#36454F]/70',
+    accentText: isDark ? 'text-[#A4C41C]'                       : 'text-[#36454F]',
+    border:     isDark ? 'border-[#EDECDA]/20'                  : 'border-[#36454F]/20',
+    drawer:     isDark ? 'bg-[#36454F]'                         : 'bg-[#EDECDA]',
+    dropdown:   isDark ? 'bg-[#36454F] border-[#EDECDA]/25'     : 'bg-[#EDECDA] border-[#36454F]/25',
   };
 
   // ── Active run ─────────────────────────────────────────────────────────────
@@ -455,7 +466,9 @@ const RequesterDashboard = () => {
   const fareLabel = fare ? `₦${fare.userPays.toLocaleString()}` : 'Select locations';
 
   // ── Suggestion row ────────────────────────────────────────────────────────
-  const SuggestionRow = ({ s, onSelect, accent }: { s: Suggestion; onSelect: () => void; accent: string }) => {
+  // (The old `hover:bg-${accent}-500/10` was built from a variable, which Tailwind
+  //  can't see, so that hover never actually worked. It's a fixed class now.)
+  const SuggestionRow = ({ s, onSelect }: { s: Suggestion; onSelect: () => void }) => {
     const isPOI = s.kind === 'poi';
     const icon  = isPOI ? categoryIcons[(s as any).poi.category] : '🌍';
     const label = isPOI ? (s as any).poi.name : (s as any).result.display_name;
@@ -463,7 +476,7 @@ const RequesterDashboard = () => {
     return (
       <li
         onMouseDown={onSelect}
-        className={`px-4 py-3 text-xs ${themeClass.text} cursor-pointer hover:bg-${accent}-500/10 border-b last:border-b-0 ${themeClass.border} flex items-start gap-3`}
+        className={`px-4 py-3 text-xs ${themeClass.text} cursor-pointer hover:bg-[#A4C41C]/25 border-b last:border-b-0 ${themeClass.border} flex items-start gap-3`}
       >
         <span className="text-base shrink-0 mt-0.5">{icon}</span>
         <div className="min-w-0">
@@ -471,7 +484,7 @@ const RequesterDashboard = () => {
           <p className={`text-[9px] ${themeClass.subText} line-clamp-1 mt-0.5`}>{sub}</p>
         </div>
         {isPOI && (
-          <span className="ml-auto shrink-0 text-[8px] font-black uppercase tracking-widest text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+          <span className="ml-auto shrink-0 text-[8px] font-black uppercase tracking-widest text-[#36454F] bg-[#A4C41C] px-2 py-0.5 rounded-full">
             Campus
           </span>
         )}
@@ -491,17 +504,17 @@ const RequesterDashboard = () => {
             <Menu size={25} />
           </motion.button>
           <motion.button whileTap={{ scale: 0.9 }} onClick={toggleTheme}
-            className={`p-4 rounded-2xl ${themeClass.card} backdrop-blur-xl border ${themeClass.border} text-orange-500 shadow-2xl`}>
+            className={`p-4 rounded-2xl ${themeClass.card} backdrop-blur-xl border ${themeClass.border} ${themeClass.accentText} shadow-2xl`}>
             {isDark ? <Sun size={25} /> : <Moon size={25} />}
           </motion.button>
         </div>
         <div className="flex items-center gap-3 pointer-events-auto">
           <div className="text-right">
-            <p className="text-[10px] font-black text-orange-500 uppercase tracking-[0.2em]">Verified User</p>
-            <p className={`text-[13px] font-bold ${isDark ? 'text-white/90' : 'text-slate-900'}`}>{user?.fullName || 'User'}</p>
+            <p className={`text-[10px] font-black ${themeClass.accentText} uppercase tracking-[0.2em]`}>Verified User</p>
+            <p className={`text-[13px] font-bold ${themeClass.text}`}>{user?.fullName || 'User'}</p>
           </div>
           <button onClick={() => navigate('/profile')}
-            className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500 shadow-lg backdrop-blur-md">
+            className="w-12 h-12 rounded-2xl bg-[#A4C41C] border border-[#36454F]/20 flex items-center justify-center text-[#36454F] shadow-lg">
             <User size={20} />
           </button>
         </div>
@@ -511,8 +524,8 @@ const RequesterDashboard = () => {
       <AnimatePresence>
         {locationError && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-            className="fixed top-28 left-4 right-4 z-[150] bg-amber-500/90 backdrop-blur-md text-white px-4 py-3 rounded-2xl shadow-xl flex items-start gap-3">
-            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+            className="fixed top-28 left-4 right-4 z-[150] bg-[#36454F] border-2 border-[#A4C41C] text-[#EDECDA] px-4 py-3 rounded-2xl shadow-xl flex items-start gap-3">
+            <AlertCircle size={16} className="shrink-0 mt-0.5 text-[#A4C41C]" />
             <div className="flex-1">
               <p className="text-[11px] font-black uppercase tracking-wider mb-0.5">Location Notice</p>
               <p className="text-[10px] leading-relaxed opacity-90">{locationError}</p>
@@ -575,7 +588,7 @@ const RequesterDashboard = () => {
             <AnimatePresence>
               {isSearching && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="absolute top-32 left-1/2 -translate-x-1/2 bg-orange-600 text-white px-6 py-2 rounded-full shadow-xl flex items-center gap-2 z-50 pointer-events-none">
+                  className="absolute top-32 left-1/2 -translate-x-1/2 bg-[#A4C41C] text-[#36454F] px-6 py-2 rounded-full shadow-xl flex items-center gap-2 z-50 pointer-events-none">
                   <Search size={14} className="animate-bounce" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Finding Runners...</span>
                 </motion.div>
@@ -583,8 +596,8 @@ const RequesterDashboard = () => {
             </AnimatePresence>
             {locationError && !userLocation && (
               <button onClick={() => window.location.reload()}  // ← reload page to retry
-                className="absolute bottom-32 right-4 z-50 bg-white shadow-xl rounded-2xl px-4 py-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-700">
-                <MapPin size={14} className="text-orange-500" /> Retry Location
+                className="absolute bottom-32 right-4 z-50 bg-[#EDECDA] border-2 border-[#36454F]/25 shadow-xl rounded-2xl px-4 py-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#36454F]">
+                <MapPin size={14} /> Retry Location
               </button>
             )}
 
@@ -602,10 +615,10 @@ const RequesterDashboard = () => {
           <motion.div initial={{ y: 100, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 100, opacity: 0 }}
             className="absolute bottom-12 left-4 right-4 z-50">
             <button onClick={() => navigate('/payment-success')}
-              className="w-full bg-orange-600 rounded-[1.5rem] px-6 py-4 flex items-center justify-between shadow-2xl shadow-orange-900/40 text-white">
+              className="w-full bg-[#A4C41C] rounded-[1.5rem] px-6 py-4 flex items-center justify-between shadow-2xl text-[#36454F]">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center animate-pulse">
-                  <div className="w-2 h-2 bg-white rounded-full" />
+                <div className="w-8 h-8 rounded-full bg-[#36454F]/15 flex items-center justify-center animate-pulse">
+                  <div className="w-2 h-2 bg-[#36454F] rounded-full" />
                 </div>
                 <div className="text-left">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70">Active Run</p>
@@ -626,7 +639,7 @@ const RequesterDashboard = () => {
       {!activeRun && !showOrderPanel && (
         <div className="absolute bottom-12 left-0 right-0 px-8 z-50">
           <Button onClick={() => setShowOrderPanel(true)}
-            className="w-full h-16 rounded-2xl text-[11px] font-black tracking-[0.3em] gap-3 bg-orange-600 hover:bg-orange-700 shadow-2xl shadow-orange-900/40 uppercase">
+            className="w-full h-16 rounded-2xl text-[11px] font-black tracking-[0.3em] gap-3 bg-[#A4C41C] hover:bg-[#A4C41C]/90 text-[#36454F] shadow-2xl uppercase">
             <Plus size={18} /> New Request
           </Button>
         </div>
@@ -642,7 +655,8 @@ const RequesterDashboard = () => {
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
               className={`fixed top-0 left-0 bottom-0 w-[85%] max-w-sm ${themeClass.drawer} z-[210] p-8 shadow-2xl flex flex-col`}>
               <div className="flex justify-between items-center mb-12">
-                <Logo />
+                {/* `light` = off-white logo, needed on the charcoal (dark theme) drawer */}
+                <Logo light={isDark} />
                 <button onClick={() => setMenuOpen(false)} className={`${themeClass.text} opacity-50 hover:opacity-100`}><X size={24} /></button>
               </div>
               <div className="space-y-4 flex-1 overflow-y-auto">
@@ -652,8 +666,9 @@ const RequesterDashboard = () => {
                 <MenuLink icon={Settings}    label="Preferences"    onClick={() => navigate('/preferences')} isDark={isDark} />
                 <MenuLink icon={Info}        label="Help & Support" onClick={() => navigate('/support')}     isDark={isDark} />
               </div>
+              {/* Sign out keeps red on purpose: it's a destructive action */}
               <button onClick={() => { logout(); navigate('/login'); }}
-                className="mt-auto flex items-center gap-4 p-5 rounded-2xl bg-red-500/10 text-red-500 font-black uppercase tracking-widest text-[10px] border border-red-500/5">
+                className="mt-auto flex items-center gap-4 p-5 rounded-2xl bg-red-500/10 text-red-600 font-black uppercase tracking-widest text-[10px] border border-red-500/20">
                 <LogOut size={18} /> Sign Out
               </button>
             </motion.div>
@@ -673,18 +688,18 @@ const RequesterDashboard = () => {
               className={`fixed inset-x-4 bottom-4 z-[120] ${themeClass.card} rounded-[2.5rem] shadow-2xl border ${themeClass.border} max-h-[82vh] flex flex-col`}>
 
               <div className="flex justify-center pt-4 pb-1 shrink-0">
-                <div className={`w-10 h-1 rounded-full ${isDark ? 'bg-white/20' : 'bg-slate-300'}`} />
+                <div className={`w-10 h-1 rounded-full ${isDark ? 'bg-[#EDECDA]/30' : 'bg-[#36454F]/30'}`} />
               </div>
               <div className="flex justify-between items-center px-8 pt-4 pb-2 shrink-0">
                 <h2 className={`text-xl font-black italic tracking-tight ${themeClass.text} uppercase`}>New Request</h2>
-                <button onClick={() => setShowOrderPanel(false)} className={`${themeClass.subText} hover:text-orange-500`}><X size={22} /></button>
+                <button onClick={() => setShowOrderPanel(false)} className={`${themeClass.subText} hover:opacity-70`}><X size={22} /></button>
               </div>
 
               <div className="overflow-y-auto px-8 pb-8 pt-2 space-y-5 flex-1">
 
                 {/* ── Item name + image ── */}
                 <div className="space-y-2">
-                  <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-white' : 'text-slate-400'}`}>Item Name</label>
+                  <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${themeClass.label}`}>Item Name</label>
                   <div className={`h-14 ${themeClass.input} rounded-2xl flex items-center px-5 border`}>
                     <input className={`bg-transparent w-full outline-none ${themeClass.text} text-sm`}
                       placeholder="e.g. MTH201 Textbook" value={orderData.item}
@@ -697,7 +712,7 @@ const RequesterDashboard = () => {
                     <button
                       type="button"
                       onClick={() => cameraRef.current?.click()}
-                      className={`flex-1 h-11 rounded-2xl border ${themeClass.border} flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500 ${isDark ? 'bg-white/5' : 'bg-slate-50'} hover:bg-orange-500/10 transition-colors`}>
+                      className={`flex-1 h-11 rounded-2xl border ${themeClass.border} flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest ${themeClass.accentText} bg-transparent hover:bg-[#A4C41C]/20 transition-colors`}>
                       <Camera size={15} /> Take Photo
                     </button>
 
@@ -705,7 +720,7 @@ const RequesterDashboard = () => {
                     <button
                       type="button"
                       onClick={() => galleryRef.current?.click()}
-                      className={`flex-1 h-11 rounded-2xl border ${themeClass.border} flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest ${themeClass.subText} ${isDark ? 'bg-white/5' : 'bg-slate-50'} hover:bg-orange-500/10 transition-colors`}>
+                      className={`flex-1 h-11 rounded-2xl border ${themeClass.border} flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest ${themeClass.subText} bg-transparent hover:bg-[#A4C41C]/20 transition-colors`}>
                       <ImagePlus size={15} /> Gallery
                     </button>
 
@@ -717,16 +732,16 @@ const RequesterDashboard = () => {
 
                   {/* Preview + uploading state */}
                   {imageUploading && (
-                    <div className="flex items-center gap-2 text-[10px] text-orange-500 font-black uppercase tracking-widest pt-1">
+                    <div className={`flex items-center gap-2 text-[10px] ${themeClass.accentText} font-black uppercase tracking-widest pt-1`}>
                       <Loader2 size={12} className="animate-spin" /> Uploading image...
                     </div>
                   )}
                   {itemImage && !imageUploading && (
-                    <div className="relative mt-2 rounded-2xl overflow-hidden border border-orange-500/20">
+                    <div className={`relative mt-2 rounded-2xl overflow-hidden border ${themeClass.border}`}>
                       <img src={itemImage} alt="Item" className="w-full max-h-36 object-cover" />
                       <button
                         onClick={() => { setItemImage(null); setOrderData(prev => ({ ...prev, itemImageUrl: '' })); }}
-                        className="absolute top-2 right-2 bg-black/50 text-white rounded-full p-1">
+                        className="absolute top-2 right-2 bg-[#36454F]/70 text-[#EDECDA] rounded-full p-1">
                         <X size={12} />
                       </button>
                     </div>
@@ -736,14 +751,14 @@ const RequesterDashboard = () => {
                 {/* ── PICKUP ── */}
                 <div className="space-y-2 relative">
                   <div className="flex justify-between items-center">
-                    <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-white' : 'text-slate-400'}`}>Pickup</label>
+                    <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${themeClass.label}`}>Pickup</label>
                     <button onClick={() => setPoiTarget(poiTarget === 'pickup' ? null : 'pickup')}
-                      className="text-[9px] font-black uppercase tracking-widest text-orange-500 hover:opacity-70">
+                      className={`text-[9px] font-black uppercase tracking-widest ${themeClass.accentText} hover:opacity-70`}>
                       Browse Campus 📍
                     </button>
                   </div>
                   <div className={`h-14 ${themeClass.input} rounded-2xl flex items-center px-5 border gap-3`}>
-                    <MapPin size={16} className="text-orange-500 shrink-0" />
+                    <MapPin size={16} className={`${themeClass.accentText} shrink-0`} />
                     <input className={`bg-transparent w-full outline-none ${themeClass.text} text-sm`}
                       placeholder="Type any location or campus building..."
                       value={pickupQuery}
@@ -756,7 +771,7 @@ const RequesterDashboard = () => {
                       <motion.ul initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         className={`absolute top-full left-0 right-0 mt-1 rounded-2xl border ${themeClass.dropdown} shadow-2xl z-[300] overflow-hidden max-h-64 overflow-y-auto`}>
                         {pickupSuggestions.map((s, i) => (
-                          <SuggestionRow key={i} s={s} accent="orange" onSelect={() => applySuggestion(s, 'pickup')} />
+                          <SuggestionRow key={i} s={s} onSelect={() => applySuggestion(s, 'pickup')} />
                         ))}
                       </motion.ul>
                     )}
@@ -767,7 +782,7 @@ const RequesterDashboard = () => {
                         placeholder="Search campus..." value={poiQuery} onChange={e => setPoiQuery(e.target.value)} autoFocus />
                       {poiResults.map((p, i) => (
                         <button key={i} onMouseDown={() => selectPOI(p, 'pickup')}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs ${themeClass.text} hover:bg-orange-500/10 flex items-center gap-2`}>
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs ${themeClass.text} hover:bg-[#A4C41C]/25 flex items-center gap-2`}>
                           <span>{categoryIcons[p.category]}</span>
                           <div><p className="font-bold">{p.name}</p><p className={`text-[9px] ${themeClass.subText}`}>{p.description}</p></div>
                         </button>
@@ -779,14 +794,14 @@ const RequesterDashboard = () => {
                 {/* ── DROPOFF ── */}
                 <div className="space-y-2 relative">
                   <div className="flex justify-between items-center">
-                    <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${isDark ? 'text-white' : 'text-slate-400'}`}>Dropoff</label>
+                    <label className={`text-[11px] font-black uppercase tracking-[0.2em] ${themeClass.label}`}>Dropoff</label>
                     <button onClick={() => setPoiTarget(poiTarget === 'dropoff' ? null : 'dropoff')}
-                      className="text-[9px] font-black uppercase tracking-widest text-green-500 hover:opacity-70">
+                      className={`text-[9px] font-black uppercase tracking-widest ${themeClass.accentText} hover:opacity-70`}>
                       Browse Campus 📍
                     </button>
                   </div>
                   <div className={`h-14 ${themeClass.input} rounded-2xl flex items-center px-5 border gap-3`}>
-                    <Navigation size={16} className="text-green-500 shrink-0" />
+                    <Navigation size={16} className={`${themeClass.accentText} shrink-0`} />
                     <input className={`bg-transparent w-full outline-none ${themeClass.text} text-sm`}
                       placeholder="Type any location or campus building..."
                       value={dropoffQuery}
@@ -799,7 +814,7 @@ const RequesterDashboard = () => {
                       <motion.ul initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                         className={`absolute top-full left-0 right-0 mt-1 rounded-2xl border ${themeClass.dropdown} shadow-2xl z-[300] overflow-hidden max-h-64 overflow-y-auto`}>
                         {dropoffSuggestions.map((s, i) => (
-                          <SuggestionRow key={i} s={s} accent="green" onSelect={() => applySuggestion(s, 'dropoff')} />
+                          <SuggestionRow key={i} s={s} onSelect={() => applySuggestion(s, 'dropoff')} />
                         ))}
                       </motion.ul>
                     )}
@@ -810,7 +825,7 @@ const RequesterDashboard = () => {
                         placeholder="Search campus..." value={poiQuery} onChange={e => setPoiQuery(e.target.value)} autoFocus />
                       {poiResults.map((p, i) => (
                         <button key={i} onMouseDown={() => selectPOI(p, 'dropoff')}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs ${themeClass.text} hover:bg-green-500/10 flex items-center gap-2`}>
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs ${themeClass.text} hover:bg-[#A4C41C]/25 flex items-center gap-2`}>
                           <span>{categoryIcons[p.category]}</span>
                           <div><p className="font-bold">{p.name}</p><p className={`text-[9px] ${themeClass.subText}`}>{p.description}</p></div>
                         </button>
@@ -820,17 +835,17 @@ const RequesterDashboard = () => {
                 </div>
 
                 {/* ── Fare breakdown ── */}
-                <div className={`rounded-2xl p-4 border ${themeClass.border} ${isDark ? 'bg-white/3' : 'bg-slate-50'}`}>
+                <div className={`rounded-2xl p-4 border ${themeClass.border}`}>
                   <div className="flex justify-between items-center mb-3">
                     <p className={`text-[9px] font-black uppercase tracking-widest ${themeClass.subText}`}>Fare Breakdown</p>
-                    {fare && <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-white/5 text-white/50' : 'bg-slate-200 text-slate-500'}`}>{distanceLabel}</span>}
+                    {fare && <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#A4C41C] text-[#36454F]">{distanceLabel}</span>}
                   </div>
                   <div className="flex justify-between items-end">
                     <div>
                       <p className={`text-[9px] ${themeClass.subText} mb-0.5`}>
                         {fare && fare.distanceMeters < FREE_METERS ? 'Base fare (under 500 m)' : 'Base + Distance'}
                       </p>
-                      <p className={`text-2xl font-black ${fare ? 'text-orange-500' : themeClass.subText} italic`}>{fareLabel}</p>
+                      <p className={`text-2xl font-black ${fare ? themeClass.accentText : themeClass.subText} italic`}>{fareLabel}</p>
                       {fare && fare.distanceMeters >= FREE_METERS && (
                         <p className={`text-[8px] ${themeClass.subText} mt-0.5`}>
                           ₦400 base + ₦{(fare.distanceMeters - FREE_METERS).toLocaleString()} distance charge
@@ -842,7 +857,7 @@ const RequesterDashboard = () => {
                     </div>
                     <div className="text-right">
                       <p className={`text-[9px] ${themeClass.subText} mb-0.5`}>Nearby Runners</p>
-                      <p className="text-lg font-black text-orange-500 italic">
+                      <p className={`text-lg font-black ${themeClass.accentText} italic`}>
                         {isSearching ? '...' : `${nearbyDispatchers.length} Online`}
                       </p>
                     </div>
@@ -850,7 +865,7 @@ const RequesterDashboard = () => {
                 </div>
 
                 <Button disabled={isProcessing || !fare || !orderData.item || imageUploading} onClick={handlePayNow}
-                  className="w-full h-14 bg-orange-600 hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed rounded-2xl font-black text-[11px] tracking-[0.3em] uppercase shadow-xl transition-all">
+                  className="w-full h-14 bg-[#A4C41C] hover:bg-[#A4C41C]/90 text-[#36454F] disabled:opacity-40 disabled:cursor-not-allowed rounded-2xl font-black text-[11px] tracking-[0.3em] uppercase shadow-xl transition-all">
                   {isProcessing ? <Loader2 size={17} className="animate-spin" /> : (
                     <><CreditCard size={17} className="mr-3" />{fare ? `Pay ${fareLabel} via Paystack` : 'Select locations to see fare'}</>
                   )}
@@ -869,16 +884,16 @@ const RequesterDashboard = () => {
 };
 
 const MenuLink = ({ icon: Icon, label, onClick, isDark }: any) => (
-  <button onClick={onClick} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-orange-500/5 transition-all group">
+  <button onClick={onClick} className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-[#A4C41C]/15 transition-all group">
     <div className="flex items-center gap-4">
-      <div className={`p-2.5 rounded-xl ${isDark ? 'bg-white/5' : 'bg-slate-100'} text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-colors`}>
+      <div className="p-2.5 rounded-xl bg-[#A4C41C] text-[#36454F]">
         <Icon size={18} />
       </div>
-      <span className={`font-bold text-[11px] uppercase tracking-widest ${isDark ? 'text-white/60' : 'text-slate-500'} group-hover:text-orange-500 transition-colors`}>
+      <span className={`font-bold text-[11px] uppercase tracking-widest transition-colors ${isDark ? 'text-[#EDECDA]/70 group-hover:text-[#A4C41C]' : 'text-[#36454F]/70 group-hover:text-[#36454F]'}`}>
         {label}
       </span>
     </div>
-    <ChevronRight size={16} className="text-slate-500 group-hover:translate-x-1 transition-transform" />
+    <ChevronRight size={16} className={`${isDark ? 'text-[#EDECDA]' : 'text-[#36454F]'} opacity-50 group-hover:translate-x-1 transition-transform`} />
   </button>
 );
 

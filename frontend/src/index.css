@@ -4,31 +4,39 @@
 
 @layer base {
   :root {
-    /* --- LIGHT MODE CRAYONS (Default) --- */
-    --background: 0 0% 100%; /* Pure White */
-    --foreground: 216 60% 11%; /* Navy text */
-    --card: 0 0% 98%;
-    --card-foreground: 216 60% 11%;
-    --border: 214.3 31.8% 91.4%;
-    
-    /* Font Mapping stays the same */
-    --font-major: "Roboto Serif", serif; 
+    /* PALETTE (keep identical on every page):
+       off-white #EDECDA · green #A4C41C · charcoal #36454F */
+    --background: 57 35% 89%;          /* #EDECDA off-white */
+    --foreground: 204 19% 26%;         /* #36454F charcoal text */
+    --card: 57 35% 89%;
+    --card-foreground: 204 19% 26%;
+    --border: 76 8% 74%;               /* charcoal at ~25% on the off-white */
+    --input: 76 8% 74%;
+    --ring: 71 75% 44%;                /* green focus ring */
+
+    --primary: 71 75% 44%;             /* #A4C41C green */
+    --primary-foreground: 204 19% 26%; /* charcoal text ON the green */
+
+    --navy-medium: 204 19% 26%;        /* charcoal */
+    --navy-light: 204 19% 26%;
+
+    --font-major: "Roboto Serif", serif;
     --font-playful: 'Love Ya Like A Sister', cursive;
     --font-body: 'Inter', sans-serif;
-
-    /* Design System Colors */
-    --primary: 26 100% 50%; 
     --radius: 0.75rem;
   }
 
-  /* --- DARK MODE CRAYONS (The "Moon Suit") --- */
-  /* This activates when the 'dark' tag is added by your App.tsx */
+  /* Activated by the 'dark' class from App.tsx */
   .dark {
-    --background: 216 60% 11%; /* Your Navy Blue */
-    --foreground: 210 40% 98%; /* White text */
-    --card: 216 60% 15%;
-    --card-foreground: 210 40% 98%;
-    --border: 216 30% 22%;
+    --background: 204 19% 26%;         /* charcoal */
+    --foreground: 57 35% 89%;          /* off-white text */
+    --card: 204 19% 26%;
+    --card-foreground: 57 35% 89%;
+    --border: 204 12% 40%;
+    --input: 204 12% 40%;
+
+    --navy-medium: 204 19% 26%;
+    --navy-light: 204 19% 26%;
   }
 
   body {
@@ -36,7 +44,6 @@
     font-family: var(--font-body);
   }
 
-  /* MAJOR HEADINGS: Roboto Serif */
   h1, .font-display {
     font-family: var(--font-major) !important;
     font-optical-sizing: auto;
@@ -45,7 +52,6 @@
     letter-spacing: -0.02em;
   }
 
-  /* NEW REQUEST & MODAL HEADINGS */
   h2, .font-modal-title {
     font-family: var(--font-major) !important;
     font-weight: 600;
@@ -53,7 +59,6 @@
     letter-spacing: -0.01em;
   }
 
-  /* PLAYFUL ACCENTS */
   h3, h4, .font-accent {
     font-family: var(--font-playful) !important;
     letter-spacing: 0.05em;
@@ -66,47 +71,39 @@
     font-style: normal;
   }
 
+  /* Names kept so existing components don't break. Both are flat colors. */
   .text-gradient-orange {
-    @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(135deg, hsl(26, 100%, 50%), hsl(38, 100%, 55%));
+    color: hsl(71, 75%, 44%);
   }
 
   .bg-navy-gradient {
-    background: linear-gradient(180deg, hsl(216, 60%, 11%) 0%, hsl(216, 60%, 8%) 100%);
+    background: hsl(204, 19%, 26%);
   }
 
   .bg-card-glass {
-    /* Made this dynamic so it works in both modes */
-    background: hsla(0, 0%, 50%, 0.1);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsla(0, 0%, 100%, 0.08);
+    background: hsl(204, 19%, 26%);
+    border: 1px solid hsla(57, 35%, 89%, 0.25);
   }
 }
 
 @layer components {
-  /* The outer body of the phone */
   .phone-frame {
-    @apply border-[10px] border-[#0F1C2F] rounded-[3rem] shadow-2xl relative bg-black;
-    box-shadow: 0 50px 100px -20px rgba(0,0,0,0.5);
+    @apply border-[10px] border-[#36454F] rounded-[3rem] shadow-2xl relative bg-[#36454F];
   }
 
-  /* The "notch" area */
   .phone-frame::after {
     content: '';
-    @apply absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#0F1C2F] rounded-b-xl;
+    @apply absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-[#36454F] rounded-b-xl;
     z-index: 20;
   }
 
-  /* The actual screen inside the frame */
   .phone-screen {
-    /* Uses the background variable we defined above */
     @apply rounded-[2rem] bg-background overflow-hidden relative;
     height: 600px;
   }
 
   .step-line {
-    @apply absolute left-[27px] top-10 bottom-10 w-[3px] bg-primary/40 rounded-full;
-    box-shadow: 0 0 10px hsla(26, 100%, 50%, 0.2);
+    @apply absolute left-[27px] top-10 bottom-10 w-[3px] bg-primary rounded-full;
   }
 }
 
