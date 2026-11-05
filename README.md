@@ -1,8 +1,8 @@
-# CampusRun
+# W!Gotcha
 Fast. Secure. Campus Powered. Student-to-student campus delivery Live tracking • Secure PIN • Reliable dispatch Built for smarter campus logistics
 
 
-Campus Run is a modern, student-led errand and delivery platform designed to eliminate the daily logistics "stress" within university environments. By connecting students who need items moved with peer "Runners" already on those routes, we create a high-speed, low-cost network that benefits the entire campus community.
+W!Gotcha is a modern, student-led errand and delivery platform designed to eliminate the daily logistics "stress" within university environments. By connecting students who need items moved with peer "Runners" already on those routes, we create a high-speed, low-cost network that benefits the entire campus community.
 
 🚀 Mission: Less Pay. Do Less. No Stress.
 We believe campus life is demanding enough without worrying about how to get a package, a meal, or an essential item from one side of the university to the other. Campus Run is built to ensure students can focus on their goals while we handle the movement.
