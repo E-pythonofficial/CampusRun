@@ -14,7 +14,6 @@ Escrow Secure: Integrated payment protection where your parcel is only released 
 
 Item Capture: Digital photo verification at pickup to ensure the safety and security of every valuable moved.
 
-Flat-Fee Pricing: Transparent ₦800 pricing for standard runs, with a cap of ₦1,300 for high-value items.
 
 🛠️ Tech Stack
 This project is a full-stack web application focused on high performance and smooth UI/UX:
